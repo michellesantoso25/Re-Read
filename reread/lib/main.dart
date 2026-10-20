@@ -27,6 +27,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    
+    final session = supabase.auth.currentSession;
+
     return MaterialApp(
       title: 'Re:Read',
       debugShowCheckedModeBanner: false,
@@ -38,11 +41,12 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      initialRoute: '/login',
+      
+      initialRoute: session != null ? '/home' : '/login',
       routes: {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
-        //'/home': (context) => const HomePage(),
+        '/home': (context) => const HomePage(), // <-- Tanda // sudah dihapus
       },
     );
   }

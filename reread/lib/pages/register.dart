@@ -27,30 +27,57 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _signUp() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    final fullName = _fullNameController.text.trim();
+    final phone = _phoneController.text.trim();
+
+    if (email.isEmpty || password.isEmpty || fullName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Name, Email and Password must be filled.'),
+          backgroundColor: Colors.orangeAccent,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
+
     try {
-      await supabase.auth.signUp(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
+      // 1. Register ke Supabase
+      final res = await supabase.auth.signUp(
+        email: email,
+        password: password,
         data: {
-          'full_name': _fullNameController.text.trim(),
-          'phone_number': _phoneController.text.trim(),
+          'full_name': fullName,
+          'phone_number': phone,
         },
       );
+
+      // 2. Jika session belum aktif otomatis, langsung paksa sign in
+      if (res.session == null) {
+        await supabase.auth.signInWithPassword(
+          email: email,
+          password: password,
+        );
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Registrasi berhasil! Silakan cek email kamu.'),
+            content: Text('Registration Successful!'),
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.pushReplacementNamed(context, '/login');
+
+        Navigator.pushReplacementNamed(context, '/home');
       }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Registrasi Gagal: ${error.toString()}'),
+            content: Text('Registration Failed: ${error.toString()}'),
             backgroundColor: Colors.redAccent,
           ),
         );

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../components/navbar.dart';
 import '../main.dart';
 
@@ -23,26 +25,62 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _signIn() async {
-    setState(() => _isLoading = true);
-    try {
-      await supabase.auth.signInWithPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Email and password must be filled.'),
+          backgroundColor: Colors.orangeAccent,
+        ),
       );
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/home');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final response = await supabase.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+
+      debugPrint('SIGN IN SUCCESS');
+      debugPrint('User ID: ${response.user?.id}');
+
+      if (!mounted) return;
+
+      // Pindah langsung ke Homepage polos
+      Navigator.pushReplacementNamed(context, '/home');
+    } on AuthException catch (error) {
+      if (!mounted) return;
+
+      // Tangkap error spesifik Supabase dengan pesan yang manusiawi
+      String errorMessage = error.message;
+      if (error.message.contains('Invalid login credentials')) {
+        errorMessage = 'Email atau password salah. Silakan periksa kembali.';
       }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
     } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Login Gagal: ${error.toString()}'),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
-      }
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Login Failed: $error'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -60,7 +98,10 @@ class _LoginPageState extends State<LoginPage> {
               flex: 4,
               child: Container(
                 color: const Color(0xFF22201F),
-                padding: const EdgeInsets.symmetric(horizontal: 50.0, vertical: 40.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 50.0,
+                  vertical: 40.0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -73,13 +114,15 @@ class _LoginPageState extends State<LoginPage> {
                         return Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            border: Border.all(color: const Color(0xFFE05627), width: 2),
+                            border: Border.all(
+                              color: const Color(0xFFE05627),
+                              width: 2,
+                            ),
                             borderRadius: BorderRadius.circular(8),
                           ),
                         );
                       },
                     ),
-
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -104,25 +147,34 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     Text(
                       'A circular marketplace for curious readers.',
-                      style: GoogleFonts.inter(color: Colors.white38, fontSize: 12),
+                      style: GoogleFonts.inter(
+                        color: Colors.white38,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
 
-          // Right Banner
+          // Right Form Banner
           Expanded(
             flex: 5,
             child: Container(
               color: const Color(0xFFECE6DF),
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 16.0,
+              ),
               child: Center(
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Container(
                     width: 400,
-                    padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 32.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32.0,
+                      vertical: 32.0,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20.0),
@@ -147,9 +199,7 @@ class _LoginPageState extends State<LoginPage> {
                             color: const Color(0xFF22201F),
                           ),
                         ),
-
                         const SizedBox(height: 4),
-
                         Text(
                           'Sign in to continue your reading journey.',
                           textAlign: TextAlign.center,
@@ -160,6 +210,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         const SizedBox(height: 24),
 
+                        // Email Field
                         Text(
                           'Email address',
                           style: GoogleFonts.inter(
@@ -168,25 +219,35 @@ class _LoginPageState extends State<LoginPage> {
                             color: const Color(0xFF22201F),
                           ),
                         ),
-
                         const SizedBox(height: 6),
-
                         SizedBox(
                           height: 42,
                           child: TextField(
                             controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            autocorrect: false,
                             style: GoogleFonts.inter(fontSize: 13),
                             decoration: InputDecoration(
                               hintText: 'Enter email address',
-                              hintStyle: GoogleFonts.inter(fontSize: 12, color: Colors.grey),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                              hintStyle: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFE0E0E0),
+                                ),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFE0E0E0),
+                                ),
                               ),
                             ),
                           ),
@@ -194,6 +255,7 @@ class _LoginPageState extends State<LoginPage> {
 
                         const SizedBox(height: 16),
 
+                        // Password Field
                         Text(
                           'Password',
                           style: GoogleFonts.inter(
@@ -202,61 +264,54 @@ class _LoginPageState extends State<LoginPage> {
                             color: const Color(0xFF22201F),
                           ),
                         ),
-
                         const SizedBox(height: 6),
-
                         SizedBox(
                           height: 42,
                           child: TextField(
                             controller: _passwordController,
                             obscureText: true,
+                            autocorrect: false,
+                            enableSuggestions: false,
                             style: GoogleFonts.inter(fontSize: 13),
                             decoration: InputDecoration(
                               hintText: 'Enter password',
-                              hintStyle: GoogleFonts.inter(fontSize: 12, color: Colors.grey),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                              hintStyle: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFE0E0E0),
+                                ),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFE0E0E0),
+                                ),
                               ),
                             ),
+                            onSubmitted: (_) {
+                              if (!_isLoading) _signIn();
+                            },
                           ),
                         ),
 
                         const SizedBox(height: 20),
 
-                        SizedBox(
-                          height: 40,
-                          child: OutlinedButton(
-                            style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: Color(0xFFE0E0E0)),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                            ),
-                            onPressed: () {},
-                            child: Text(
-                              'Continue with Google',
-                              style: GoogleFonts.inter(
-                                color: const Color(0xFF22201F),
-                                fontWeight: FontWeight.w600,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 10),
-
+                        // Sign in Button
                         SizedBox(
                           height: 42,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFFE05627),
+                              disabledBackgroundColor:
+                                  const Color(0xFFE05627).withOpacity(0.6),
                               elevation: 0,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20),
@@ -285,16 +340,21 @@ class _LoginPageState extends State<LoginPage> {
 
                         const SizedBox(height: 16),
 
+                        // Register Link
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
                               'New to Re:Read? ',
-                              style: GoogleFonts.inter(fontSize: 12, color: Colors.black54),
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: Colors.black54,
+                              ),
                             ),
                             GestureDetector(
                               onTap: () {
-                                Navigator.pushNamed(context, '/register');
+                                Navigator.pushReplacementNamed(
+                                    context, '/register');
                               },
                               child: Text(
                                 'Register',
