@@ -5,7 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'pages/login.dart';
 import 'pages/register.dart';
-import 'pages/home_page.dart';
+import 'pages/home_page.dart'; 
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,7 +27,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    
     final session = supabase.auth.currentSession;
 
     return MaterialApp(
@@ -41,12 +40,11 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      
       initialRoute: session != null ? '/home' : '/login',
       routes: {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
-        '/home': (context) => const HomePage(), // <-- Tanda // sudah dihapus
+        '/home': (context) => const HomePage(), // <-- Route aktif
       },
     );
   }

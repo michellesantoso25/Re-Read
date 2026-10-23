@@ -9,13 +9,13 @@ class CustomNavbar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFF1E1E1E), // Latar belakang gelap sesuai UI
+      color: const Color(0xFF1E1E1E),
       padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
       child: SafeArea(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Pautan Navigasi Kiri (Browse, Sell, About)
+            // Left Navigation (Browse, Sell, About)
             Row(
               children: [
                 TextButton(
@@ -44,7 +44,7 @@ class CustomNavbar extends StatelessWidget implements PreferredSizeWidget {
               ],
             ),
 
-            // Aksi Kanan (Search & Log in Button)
+            // Right Navigation (Search & Log in Button)
             Row(
               children: [
                 TextButton(
