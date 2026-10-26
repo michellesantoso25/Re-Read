@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:reread/seller/pages/seller_dashboard.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'pages/login.dart';
 import 'pages/register.dart';
 import 'pages/home_page.dart'; 
+
+//seller y
+import 'seller/pages/seller_dashboard.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,11 +44,16 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      initialRoute: session != null ? '/home' : '/login',
+
+
+      // initialRoute: session != null ? '/home' : '/login',
+      initialRoute: '/seller_dashboard',
       routes: {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/home': (context) => const HomePage(), // <-- Route aktif
+
+        '/seller_dashboard': (context) => const SellerDashboard(),
       },
     );
   }
