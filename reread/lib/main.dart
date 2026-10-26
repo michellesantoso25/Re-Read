@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:reread/seller/pages/seller_catalog_page.dart';
 import 'package:reread/seller/pages/seller_dashboard.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -47,13 +48,14 @@ class MyApp extends StatelessWidget {
 
 
       // initialRoute: session != null ? '/home' : '/login',
-      initialRoute: '/seller_dashboard',
+      initialRoute: '/seller_catalog_page',
       routes: {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/home': (context) => const HomePage(), // <-- Route aktif
 
         '/seller_dashboard': (context) => const SellerDashboard(),
+        '/seller_catalog_page': (context) => const SellerCatalogPage(),
       },
     );
   }
