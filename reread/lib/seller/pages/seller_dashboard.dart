@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../component/top_bar.dart'; // Pastikan path import sesuai
+import '../component/top_bar.dart';
 
 class SellerDashboard extends StatelessWidget {
   const SellerDashboard({Key? key}) : super(key: key);
@@ -12,7 +12,7 @@ class SellerDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: bgColor,
-      appBar: const CustomTopBar(),
+      appBar: const CustomTopBar(activePage: 'Dashboard'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(40.0),
         child: Column(

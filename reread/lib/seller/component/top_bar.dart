@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
-  const CustomTopBar({Key? key}) : super(key: key);
+  final String activePage;
+
+  const CustomTopBar({
+    Key? key,
+    this.activePage = 'Dashboard',
+  }) : super(key: key);
 
   @override
   Size get preferredSize => const Size.fromHeight(72);
@@ -22,6 +27,7 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
           ),
           child: Row(
             children: [
+              // Logo
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -35,7 +41,7 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                   const SizedBox(width: 6),
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 4.0), // Menyesuaikan tinggi teks dengan logo
+                    padding: const EdgeInsets.only(bottom: 4.0),
                     child: Text(
                       'for seller',
                       style: GoogleFonts.inter(
@@ -48,7 +54,7 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
                 ],
               ),
 
-              //main Navigation
+              // Navigation Menu
               Expanded(
                 child: Center(
                   child: SingleChildScrollView(
@@ -56,21 +62,20 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        _navLink('Dashboard', isActive: true),
-                        _navLink('Catalog'),
-                        _navLink('Sell a Book'),
-                        _navLink('Transaction History'),
+                        _navLink(context, 'Dashboard', isActive: activePage == 'Dashboard', route: '/seller_dashboard'),
+                        _navLink(context, 'Catalog', isActive: activePage == 'Catalog', route: '/seller_catalog_page'),
+                        _navLink(context, 'Sell a Book', isActive: activePage == 'Sell a Book', route: '/sell_a_book_page'),
+                        _navLink(context, 'Transaction History', isActive: activePage == 'Transaction History', route: '/transaction_history_page'),
                       ],
                     ),
                   ),
                 ),
               ),
 
-              //Bagian Kanan (Wallet, Notifikasi, Profile)
+              // Right Section
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Wallet Balance
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
@@ -79,38 +84,38 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
                     ),
                     child: Row(
                       children: [
-                        Text(
-                          'Wallet balance ',
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            color: const Color(0xFF888888),
-                          ),
-                        ),
-                        Text(
-                          '\$48.20',
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF22201F),
-                          ),
-                        ),
+                        Text('Wallet balance ', style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF888888))),
+                        Text('\$48.20', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFF22201F))),
                       ],
                     ),
                   ),
                   const SizedBox(width: 12),
 
+                  // Notification
                   IconButton(
                     icon: const Icon(Icons.notifications_none, size: 24, color: Color(0xFF22201F)),
-                    onPressed: () {},
+                    onPressed: () {
+                      if (activePage != 'Notifications') {
+                        Navigator.pushNamed(context, '/notifications_page');
+                      }
+                    },
                     splashRadius: 20,
                     constraints: const BoxConstraints(),
                     padding: EdgeInsets.zero,
                   ),
                   const SizedBox(width: 16),
 
-                  const CircleAvatar(
-                    radius: 16,
-                    backgroundColor: primaryOrange,
+                  // Profile
+                  InkWell(
+                    onTap: () {
+                      if (activePage != 'Profile') {
+                        Navigator.pushNamed(context, '/profile_page');
+                      }
+                    },
+                    child: const CircleAvatar(
+                      radius: 16,
+                      backgroundColor: primaryOrange,
+                    ),
                   ),
                 ],
               ),
@@ -121,18 +126,41 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-
-  Widget _navLink(String title, {bool isActive = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0), 
-      child: Text(
-        title,
-        style: GoogleFonts.inter(
-          fontSize: 14,
-          fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-          color: isActive ? const Color(0xFFFF5500) : const Color(0xFF555555),
+  // Widget _navLink yang sudah ditambahkan fungsi onTap
+  Widget _navLink(BuildContext context, String title, {bool isActive = false, required String route}) {
+    return InkWell(
+      onTap: () {
+        if (!isActive) {
+          // Menggunakan pushReplacementNamed agar halaman tidak menumpuk di memori
+          Navigator.pushReplacementNamed(context, route);
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        child: Text(
+          title,
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+            color: isActive ? const Color(0xFFFF5500) : const Color(0xFF555555),
+          ),
         ),
       ),
     );
+  }
+}// Taruh class ini di luar class MyApp (paling bawah file main.dart)
+class NoTransitionsBuilder extends PageTransitionsBuilder {
+  const NoTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    // Kembalikan child langsung tanpa widget animasi apapun
+    return child; 
   }
 }
