@@ -118,7 +118,7 @@ class _ProfilePageState extends State<ProfilePage> {
           .select('id')
           .maybeSingle();
       if (updatedUser == null) {
-        throw StateError('Baris akun Anda tidak ditemukan di tabel users.');
+        throw StateError('Your account row was not found in the users table.');
       }
       await supabase.from('profiles').upsert(_profileRow(), onConflict: 'id');
       await supabase.auth.updateUser(
@@ -134,14 +134,14 @@ class _ProfilePageState extends State<ProfilePage> {
         setState(() {});
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Profil dan nomor telepon berhasil disimpan.'),
+            content: Text('Profile and phone number saved successfully.'),
           ),
         );
       }
     } on AuthException catch (error) {
       _showSaveError(error.message);
     } catch (error) {
-      _showSaveError('Gagal menyimpan nomor ke tabel users: $error');
+      _showSaveError('Failed to save phone number to users table: $error');
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -166,19 +166,19 @@ class _ProfilePageState extends State<ProfilePage> {
       if (mounted) {
         setState(() {});
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profil berhasil disimpan.')),
+          const SnackBar(content: Text('Profile saved successfully.')),
         );
       }
     } on AuthException catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menyimpan profil: ${error.message}')),
+          SnackBar(content: Text('Failed to save profile: ${error.message}')),
         );
       }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menyimpan profil ke Supabase: $error')),
+          SnackBar(content: Text('Failed to save profile to Supabase: $error')),
         );
       }
     } finally {
@@ -206,12 +206,12 @@ class _ProfilePageState extends State<ProfilePage> {
       final bytes = image.bytes;
       if (bytes == null) {
         _showAvatarError(
-          'File foto tidak dapat dibaca. Silakan pilih foto lain.',
+          'Unable to read the photo file. Please select another photo.',
         );
         return;
       }
       if (bytes.length > 5 * 1024 * 1024) {
-        _showAvatarError('Ukuran foto maksimal 5 MB.');
+        _showAvatarError('Maximum photo size is 5 MB.');
         return;
       }
       setState(() => _uploadingAvatar = true);
@@ -253,17 +253,17 @@ class _ProfilePageState extends State<ProfilePage> {
           _avatarPath = path;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Foto profil berhasil diperbarui.')),
+          const SnackBar(content: Text('Profile photo updated successfully.')),
         );
       }
     } on AuthException catch (error) {
       _showAvatarError(error.message);
     } on StorageException catch (error) {
       _showAvatarError(
-        'Gagal mengunggah foto. Pastikan bucket avatars dan izinnya sudah disiapkan. ${error.message}',
+        'Failed to upload photo. Make sure the avatars bucket and its permissions are configured. ${error.message}',
       );
     } catch (error) {
-      _showAvatarError('Gagal memperbarui foto profil: $error');
+      _showAvatarError('Failed to update profile photo: $error');
     } finally {
       if (mounted) setState(() => _uploadingAvatar = false);
     }
@@ -307,15 +307,15 @@ class _ProfilePageState extends State<ProfilePage> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _input('Nama lengkap', name),
+            _input('Full name', name),
             const SizedBox(height: 14),
-            _input('Nomor telepon', phone, keyboardType: TextInputType.phone),
+            _input('Phone number', phone, keyboardType: TextInputType.phone),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
+            child: const Text('Cancel'),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: _orange),
@@ -324,7 +324,7 @@ class _ProfilePageState extends State<ProfilePage> {
               _phone.text = phone.text;
               Navigator.pop(context, true);
             },
-            child: const Text('Simpan'),
+            child: const Text('Save'),
           ),
         ],
       ),
@@ -350,10 +350,10 @@ class _ProfilePageState extends State<ProfilePage> {
     if (user == null) {
       return Scaffold(
         appBar: const CustomTopBar(activeNav: null),
-        body: const Center(child: Text('Silakan masuk untuk melihat profil.')),
+        body: const Center(child: Text('Please sign in to view your profile.')),
       );
     }
-    final email = user.email ?? 'Email belum tersedia';
+    final email = user.email ?? 'Email not available';
     final displayName = _name.text.trim().isEmpty
         ? email.split('@').first
         : _name.text.trim();
@@ -382,7 +382,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       ? Alignment.center
                       : Alignment.centerLeft,
                   child: Text(
-                    isSeller ? 'Profil Seller' : 'Profil Anda',
+                    isSeller ? 'Seller Profile' : 'Your Profile',
                     textAlign: width < 700 ? TextAlign.center : TextAlign.left,
                     style: GoogleFonts.inter(
                       fontSize: 27,
@@ -398,8 +398,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       : Alignment.centerLeft,
                   child: Text(
                     isSeller
-                        ? 'Kelola detail, alamat, katalog, dan transaksi Anda.'
-                        : 'Kelola detail, alamat, dan transaksi Anda.',
+                        ? 'Manage your details, address, catalog, and transactions.'
+                        : 'Manage your details, address, and transactions.',
                     textAlign: width < 700 ? TextAlign.center : TextAlign.left,
                     style: GoogleFonts.inter(
                       color: Colors.black54,
@@ -466,7 +466,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text(
-                                        'Katalog Anda akan tersedia segera.',
+                                        'Your catalog will be available soon.',
                                       ),
                                     ),
                                   ),
@@ -477,7 +477,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ),
                               ),
                               child: const Text(
-                                'Lihat katalog saya',
+                                'View my catalog',
                                 style: TextStyle(color: _ink),
                               ),
                             ),
@@ -536,7 +536,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               vertical: 14,
                             ),
                           ),
-                          child: const Text('Edit Profil'),
+                          child: const Text('Edit Profile'),
                         );
                         if (compact) {
                           return Column(
@@ -618,7 +618,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 : CrossAxisAlignment.start,
             children: [
               Text(
-                'Alamat Saya',
+                'My Address',
                 textAlign: centered ? TextAlign.center : TextAlign.left,
                 style: GoogleFonts.inter(
                   fontSize: 16,
@@ -626,11 +626,11 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
               const SizedBox(height: 14),
-              _addressField('Jalan', _street),
+              _addressField('Street', _street),
               const SizedBox(height: 12),
-              _addressField('Kota', _city),
+              _addressField('City', _city),
               const SizedBox(height: 12),
-              _addressField('Kode pos', _postal),
+              _addressField('Postal code', _postal),
               const SizedBox(height: 14),
               if (_editingAddress)
                 Row(
@@ -641,7 +641,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     FilledButton(
                       onPressed: _saving ? null : _saveAddress,
                       style: FilledButton.styleFrom(backgroundColor: _orange),
-                      child: const Text('Simpan alamat'),
+                      child: const Text('Save address'),
                     ),
                     const SizedBox(width: 8),
                     TextButton(
@@ -651,7 +651,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           _loadMetadata();
                         });
                       },
-                      child: const Text('Batal'),
+                      child: const Text('Cancel'),
                     ),
                   ],
                 )
@@ -659,7 +659,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 FilledButton(
                   onPressed: () => setState(() => _editingAddress = true),
                   style: FilledButton.styleFrom(backgroundColor: _orange),
-                  child: const Text('Edit Alamat'),
+                  child: const Text('Edit Address'),
                 ),
             ],
           );
@@ -680,7 +680,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 : CrossAxisAlignment.start,
             children: [
               Text(
-                'Riwayat transaksi',
+                'Transaction history',
                 textAlign: centered ? TextAlign.center : TextAlign.left,
                 style: GoogleFonts.inter(
                   fontSize: 16,
@@ -689,7 +689,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               const SizedBox(height: 12),
               Text(
-                'Pembeli',
+                'Buyer',
                 textAlign: centered ? TextAlign.center : TextAlign.left,
                 style: GoogleFonts.inter(
                   color: _orange,
@@ -699,7 +699,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Belum ada transaksi.',
+                'No transactions yet.',
                 textAlign: centered ? TextAlign.center : TextAlign.left,
                 style: GoogleFonts.inter(fontSize: 12, color: Colors.black54),
               ),
@@ -707,7 +707,7 @@ class _ProfilePageState extends State<ProfilePage> {
               OutlinedButton(
                 onPressed: null,
                 style: OutlinedButton.styleFrom(shape: const StadiumBorder()),
-                child: const Text('Lihat lainnya'),
+                child: const Text('See more'),
               ),
             ],
           );
@@ -721,7 +721,7 @@ class _ProfilePageState extends State<ProfilePage> {
     children: [
       Center(
         child: Text(
-          'Zona bahaya',
+          'Danger Zone!',
           style: GoogleFonts.inter(
             color: Colors.red,
             fontWeight: FontWeight.w800,
@@ -737,7 +737,7 @@ class _ProfilePageState extends State<ProfilePage> {
           shape: const StadiumBorder(),
           padding: const EdgeInsets.symmetric(vertical: 14),
         ),
-        child: const Text('Keluar'),
+        child: const Text('Sign out'),
       ),
       const SizedBox(height: 7),
       OutlinedButton(
@@ -748,7 +748,7 @@ class _ProfilePageState extends State<ProfilePage> {
           shape: const StadiumBorder(),
           padding: const EdgeInsets.symmetric(vertical: 14),
         ),
-        child: const Text('Ganti akun'),
+        child: const Text('Switch account'),
       ),
     ],
   );
@@ -756,7 +756,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _addressField(String label, TextEditingController controller) {
     final centered = MediaQuery.sizeOf(context).width < 700;
     if (!_editingAddress) {
-      final value = controller.text.isEmpty ? 'Belum diisi' : controller.text;
+      final value = controller.text.isEmpty ? 'Not set' : controller.text;
       return Column(
         crossAxisAlignment: centered
             ? CrossAxisAlignment.center

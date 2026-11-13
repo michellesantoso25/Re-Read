@@ -695,19 +695,35 @@ class _NewArrivalsPageState extends State<NewArrivalsPage> {
   Widget _bookGrid(List<Map<String, dynamic>> books) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final columns = width < 700 ? 2 : (width < 1050 ? 3 : 4);
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: books.length,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: columns,
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            mainAxisExtent: 330,
-          ),
-          itemBuilder: (context, i) => BookCard(book: books[i]),
+        const double spacing = 12;
+        const double minCardWidth = 170;
+        const double maxCardWidth = 220;
+        const double cardHeight = 330;
+
+        final width = constraints.maxWidth - 0.5;
+
+        final int columns = width < 700
+            ? 2 // HP selalu 2
+            : ((width + spacing) / (minCardWidth + spacing))
+                .floor()
+                .clamp(2, 5)
+                .toInt();
+
+        final double cardWidth = ((width - spacing * (columns - 1)) / columns)
+          .clamp(0.0, maxCardWidth)
+          .toDouble();
+
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: [
+            for (final book in books)
+              SizedBox(
+                width: cardWidth,
+                height: cardHeight,
+                child: BookCard(book: book),
+              ),
+          ],
         );
       },
     );

@@ -51,6 +51,10 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        if (constraints.maxWidth < 200 || constraints.maxHeight < 92) {
+          return const SizedBox.shrink();
+        }
+
         final shortestSide = MediaQuery.sizeOf(context).shortestSide;
         final phone =
             constraints.maxWidth <= 640 ||
@@ -94,13 +98,13 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
                         _cartButton(context, iconOnly: true),
                         const SizedBox(width: 2),
                         IconButton(
-                          tooltip: 'Notifikasi',
+                          tooltip: 'Notifications',
                           icon: const Icon(
                             Icons.notifications_none_rounded,
                             size: 21,
                           ),
                           onPressed: () =>
-                              _showComingSoon(context, 'Notifikasi'),
+                              _showComingSoon(context, 'Notification'),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(
                             minWidth: 34,
@@ -115,7 +119,7 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
                         ),
                         const SizedBox(width: 8),
                         PopupMenuButton<String>(
-                          tooltip: 'Buka menu',
+                          tooltip: 'Open menu',
                           padding: EdgeInsets.zero,
                           offset: const Offset(0, 8),
                           shape: RoundedRectangleBorder(
@@ -198,10 +202,10 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
                         ),
                         SizedBox(width: tablet ? 3 : 14),
                         IconButton(
-                          tooltip: 'Notifikasi',
+                          tooltip: 'Notification',
                           icon: const Icon(Icons.notifications_none, size: 20),
                           onPressed: () =>
-                              _showComingSoon(context, 'Notifikasi'),
+                              _showComingSoon(context, 'Notification'),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(
                             minWidth: 30,
@@ -375,7 +379,7 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
   void _showComingSoon(BuildContext context, String title) {
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text('$title segera tersedia.')));
+    ).showSnackBar(SnackBar(content: Text('$title is coming soon.')));
   }
 
   Widget _genreItem(BuildContext context, String title) {

@@ -126,19 +126,49 @@ class _GenrePageState extends State<GenrePage> {
         const SizedBox(height: 12),
         LayoutBuilder(
           builder: (context, constraints) {
-            final width = constraints.maxWidth;
-            final columns = width < 700 ? 2 : (width < 1050 ? 3 : 4);
-            return GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: books.length,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: columns,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                mainAxisExtent: 330,
-              ),
-              itemBuilder: (context, i) => BookCard(book: books[i]),
+            const double minGap = 12; // jarak minimum antar kartu
+            const double runSpacing = 12; // jarak antar baris
+            const double minCardWidth = 190;
+            const double maxCardWidth = 260; // naikkan kalau mau kartu lebih lebar
+            const double cardHeight = 330;
+
+            // Dikurangi sedikit supaya pembulatan tidak membuat kartu terakhir turun baris
+            final width = constraints.maxWidth - 0.5;
+            final bool phone = width < 700;
+
+            final int columns = phone
+                ? 2
+                : ((width + minGap) / (minCardWidth + minGap))
+                    .floor()
+                    .clamp(2, 5)
+                    .toInt();
+
+            // Di HP kartu mengisi lebar penuh; di layar lebar dibatasi maxCardWidth
+            final double cardWidth =
+                ((width - minGap * (columns - 1)) / columns)
+                    .clamp(0.0, phone ? double.infinity : maxCardWidth)
+                    .toDouble();
+
+            // Sisa ruang dibagi rata ke jarak antar kartu, jadi tidak ada
+            // ruang kosong menumpuk di sisi kanan. Baris terakhir yang tidak
+            // penuh tetap rata kiri dengan jarak yang sama dengan baris atasnya.
+            final double gap = columns > 1
+                ? ((width - cardWidth * columns) / (columns - 1))
+                    .clamp(minGap, double.infinity)
+                    .toDouble()
+                : 0;
+
+            return Wrap(
+              spacing: gap,
+              runSpacing: runSpacing,
+              children: [
+                for (final book in books)
+                  SizedBox(
+                    width: cardWidth,
+                    height: cardHeight,
+                    child: BookCard(book: book),
+                  ),
+              ],
             );
           },
         ),
