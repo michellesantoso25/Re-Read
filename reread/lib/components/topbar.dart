@@ -3,12 +3,13 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:reread/pages/buyer_pages/categories_page.dart';
 import 'package:reread/pages/buyer_pages/genre_page.dart';
+import 'package:reread/pages/buyer_pages/new_arrivals_page.dart';
 
 class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
-  /// Menu utama yang sedang aktif (berwarna orange). Contoh: 'Home', 'Categories'.
+  /// Menu utama yang sedang aktif (Orange)
   final String? activeNav;
 
-  /// Genre yang sedang dibuka (berwarna hitam). Null kalau tidak sedang di halaman genre.
+  /// Genre yang sedang dibuka (Black). Null kalau tidak sedang di halaman genre.
   final String? activeGenre;
 
   const CustomTopBar({Key? key, this.activeNav = 'Home', this.activeGenre})
@@ -17,7 +18,7 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
   // Menu -> route. Menu yang belum punya halaman diisi null (tampil "coming soon").
   static const Map<String, String?> _navRoutes = {
     'Home': '/home',
-    'New Arrivals': null,
+    'New Arrivals': '/newArrivals',
     'Categories': '/categories',
     'Sell a Book': null,
     'Help & Support': null,
@@ -156,6 +157,18 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
             Navigator.of(context).pushAndRemoveUntil(
               PageRouteBuilder(
                 pageBuilder: (_, __, ___) => const CategoriesPage(),
+                transitionDuration: Duration.zero,
+                reverseTransitionDuration: Duration.zero,
+              ),
+              (r) => false,
+            );
+            return;
+          }
+          
+          if (title == 'New Arrivals') {
+            Navigator.of(context).pushAndRemoveUntil(
+              PageRouteBuilder(
+                pageBuilder: (_, __, ___) => const NewArrivalsPage(),
                 transitionDuration: Duration.zero,
                 reverseTransitionDuration: Duration.zero,
               ),
