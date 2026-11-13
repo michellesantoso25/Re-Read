@@ -18,7 +18,6 @@ class SellerDashboard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header Text
             Text(
               'Marketplace overview',
               style: GoogleFonts.inter(
@@ -37,37 +36,33 @@ class SellerDashboard extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // Action Buttons Row
             Row(
               children: [
-                Expanded(child: _buildActionCard(Icons.add_circle_outline, 'Sell A Book')),
+                Expanded(child: _buildActionCard(context, Icons.add_circle_outline, 'Sell A Book', '/sell_a_book_page')),
                 const SizedBox(width: 16),
-                Expanded(child: _buildActionCard(Icons.history, 'Transaction History')),
+                Expanded(child: _buildActionCard(context, Icons.history, 'Transaction History', '/transaction_history_page')),
                 const SizedBox(width: 16),
-                Expanded(child: _buildActionCard(Icons.local_shipping_outlined, 'Order Tracking')),
+                Expanded(child: _buildActionCard(context, Icons.local_shipping_outlined, 'Order Tracking', '/order_tracking_page')),
               ],
             ),
             const SizedBox(height: 16),
 
-            // Stats Row
             Row(
               children: [
                 Expanded(child: _buildStatCard('Active users', '12,480', '+8.2%')),
                 const SizedBox(width: 16),
                 Expanded(child: _buildStatCard('Live listings', '6,214', '+324')),
                 const SizedBox(width: 16),
-                Expanded(child: _buildStatCard('Sales volume', '\$84.2K', '+12.5%')),
+                Expanded(child: _buildStatCard('Sales volume', '\Rp 84.2K', '+12.5%')),
                 const SizedBox(width: 16),
                 Expanded(child: _buildStatCard('Books recirculated', '18,906', '+1,102')),
               ],
             ),
             const SizedBox(height: 16),
 
-            // Bottom Section (Charts & Recent Activity)
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Chart Section
                 Expanded(
                   flex: 7,
                   child: Container(
@@ -106,7 +101,6 @@ class SellerDashboard extends StatelessWidget {
                 ),
                 const SizedBox(width: 16),
                 
-                // Recent Activity Section
                 Expanded(
                   flex: 3,
                   child: Container(
@@ -140,27 +134,32 @@ class SellerDashboard extends StatelessWidget {
     );
   }
 
-  Widget _buildActionCard(IconData icon, String title) {
-    return Container(
-      height: 120,
-      decoration: BoxDecoration(
-        color: primaryOrange,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: Colors.white, size: 36),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: GoogleFonts.inter(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+  Widget _buildActionCard(BuildContext context, IconData icon, String title, String route) {
+    return InkWell(
+      onTap: () {
+        Navigator.pushReplacementNamed(context, route);
+      },
+      child: Container(
+        height: 120,
+        decoration: BoxDecoration(
+          color: primaryOrange,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 36),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: GoogleFonts.inter(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

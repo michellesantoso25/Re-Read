@@ -85,7 +85,7 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
                     child: Row(
                       children: [
                         Text('Wallet balance ', style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF888888))),
-                        Text('\$48.20', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFF22201F))),
+                        Text('Rp 48.200', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFF22201F))),
                       ],
                     ),
                   ),
@@ -126,12 +126,10 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  // Widget _navLink yang sudah ditambahkan fungsi onTap
   Widget _navLink(BuildContext context, String title, {bool isActive = false, required String route}) {
     return InkWell(
       onTap: () {
         if (!isActive) {
-          // Menggunakan pushReplacementNamed agar halaman tidak menumpuk di memori
           Navigator.pushReplacementNamed(context, route);
         }
       },
@@ -147,20 +145,5 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
     );
-  }
-}// Taruh class ini di luar class MyApp (paling bawah file main.dart)
-class NoTransitionsBuilder extends PageTransitionsBuilder {
-  const NoTransitionsBuilder();
-
-  @override
-  Widget buildTransitions<T>(
-    PageRoute<T> route,
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-    Widget child,
-  ) {
-    // Kembalikan child langsung tanpa widget animasi apapun
-    return child; 
   }
 }

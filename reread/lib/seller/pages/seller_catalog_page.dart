@@ -101,11 +101,11 @@ class SellerCatalogPage extends StatelessWidget {
               itemCount: 10,
               itemBuilder: (context, index) {
                 final books = [
-                  {'title': 'The Midnight Library', 'author': 'Matt Haig', 'price': '\$9.50', 'condition': ''},
-                  {'title': 'Before the Coffee Gets Cold', 'author': 'Toshikazu Kawaguchi', 'price': '\$8.00', 'condition': 'Very good'},
-                  {'title': 'The Vanishing Half', 'author': 'Brit Bennett', 'price': '\$11.25', 'condition': 'Very good'},
-                  {'title': 'Klara and the Sun', 'author': 'Kazuo Ishiguro', 'price': '\$10.00', 'condition': 'Very good'},
-                  {'title': 'Circe', 'author': 'Madeline Miller', 'price': '\$7.75', 'condition': 'Very good'},
+                  {'title': 'The Midnight Library', 'author': 'Matt Haig', 'price': '\Rp 9.50', 'condition': ''},
+                  {'title': 'Before the Coffee Gets Cold', 'author': 'Toshikazu Kawaguchi', 'price': '\Rp 8.00', 'condition': 'Very good'},
+                  {'title': 'The Vanishing Half', 'author': 'Brit Bennett', 'price': '\Rp 11.25', 'condition': 'Very good'},
+                  {'title': 'Klara and the Sun', 'author': 'Kazuo Ishiguro', 'price': '\Rp 10.00', 'condition': 'Very good'},
+                  {'title': 'Circe', 'author': 'Madeline Miller', 'price': '\Rp 7.75', 'condition': 'Very good'},
                 ];
 
                 final book = books[index % 5];
