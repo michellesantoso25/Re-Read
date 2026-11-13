@@ -3,9 +3,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'pages/login.dart';
-import 'pages/register.dart';
-import 'pages/home_page.dart'; 
+import 'package:reread/pages/main_pages/login.dart';
+import 'package:reread/pages/main_pages/register.dart';
+import 'package:reread/pages/buyer_pages/home_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
-        '/home': (context) => const HomePage(), // <-- Route aktif
+        '/home': (context) => const HomePage(),
       },
     );
   }

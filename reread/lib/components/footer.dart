@@ -185,14 +185,7 @@ class CustomFooter extends StatelessWidget {
               // TikTok
               InkWell(
                 borderRadius: BorderRadius.circular(20),
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('TikTok Re:Read coming soon!'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                },
+                onTap: () => _launchURL('https://www.tiktok.com/@reread_com'),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   child: Row(
