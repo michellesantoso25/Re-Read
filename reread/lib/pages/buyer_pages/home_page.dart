@@ -79,6 +79,21 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // Waktu terbaru antara created_at dan updated_at
+  DateTime _latestActivity(Map<String, dynamic> b) {
+    final epoch = DateTime.fromMillisecondsSinceEpoch(0);
+    final created = DateTime.tryParse((b['created_at'] ?? '').toString()) ?? epoch;
+    final updated = DateTime.tryParse((b['updated_at'] ?? '').toString()) ?? epoch;
+    return updated.isAfter(created) ? updated : created;
+  }
+
+  // 15 buku yang paling baru dibuat atau diupdate
+  List<Map<String, dynamic>> _latest(List<Map<String, dynamic>> books, {int limit = 15}) {
+    final list = [...books];
+    list.sort((a, b) => _latestActivity(b).compareTo(_latestActivity(a)));
+    return list.take(limit).toList();
+  }
+
   List<Map<String, dynamic>> _applyFilters(List<Map<String, dynamic>> books) {
     return books.where((b) {
       // Genre
@@ -346,11 +361,15 @@ class _HomePageState extends State<HomePage> {
               );
             }
 
-            final filtered = _applyFilters(snapshot.data ?? []);
+            final allBooks = snapshot.data ?? [];
+            final filtered = _applyFilters(allBooks);
             final isFiltering =
-              _appliedGenres.isNotEmpty || _appliedPrices.isNotEmpty || 
-              _appliedConditions.isNotEmpty || _query.isNotEmpty;
-            final visible = (isFiltering || _showAll) ? filtered : filtered.take(5).toList();
+                _appliedGenres.isNotEmpty || _appliedPrices.isNotEmpty ||
+                _appliedConditions.isNotEmpty || _query.isNotEmpty;
+
+            // Tanpa filter: New Releases = 15 buku terbaru. Dengan filter/search: semua hasil.
+            final releasePool = isFiltering ? filtered : _latest(allBooks);
+            final visible = (isFiltering || _showAll) ? releasePool : releasePool.take(5).toList();
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -373,7 +392,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ],
                     ),
-                    if (!isFiltering && filtered.length > 5)
+                    if (!isFiltering && releasePool.length > 5)
                       InkWell(
                         onTap: () => setState(() => _showAll = !_showAll),
                         child: Text(
@@ -389,7 +408,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: 12),
 
-                if (filtered.isEmpty)
+                if (releasePool.isEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 60),
                     child: Center(
