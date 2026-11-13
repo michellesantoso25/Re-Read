@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:reread/pages/buyer_pages/categories_page.dart';
 import 'package:reread/pages/buyer_pages/genre_page.dart';
 
 class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
@@ -17,7 +18,7 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
   static const Map<String, String?> _navRoutes = {
     'Home': '/home',
     'New Arrivals': null,
-    'Categories': null,
+    'Categories': '/categories',
     'Sell a Book': null,
     'Help & Support': null,
   };
@@ -150,6 +151,19 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
         borderRadius: BorderRadius.circular(4),
         onTap: () {
           if (isActive && activeGenre == null) return; // sudah di halaman ini
+
+          if (title == 'Categories') {
+            Navigator.of(context).pushAndRemoveUntil(
+              PageRouteBuilder(
+                pageBuilder: (_, __, ___) => const CategoriesPage(),
+                transitionDuration: Duration.zero,
+                reverseTransitionDuration: Duration.zero,
+              ),
+              (r) => false,
+            );
+            return;
+          }
+
           final route = _navRoutes[title];
           if (route != null) {
             Navigator.of(context).pushNamedAndRemoveUntil(route, (r) => false);
