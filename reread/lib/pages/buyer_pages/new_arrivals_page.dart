@@ -38,11 +38,7 @@ class _NewArrivalsPageState extends State<NewArrivalsPage> {
     'Over Rp 100.000': [100001, null],
   };
 
-  static const List<String> _conditions = [
-    'Like new',
-    'Very good',
-    'Good',
-  ];
+  static const List<String> _conditions = ['Like new', 'Very good', 'Good'];
 
   static const List<String> _sortOptions = [
     'Recommended',
@@ -87,20 +83,25 @@ class _NewArrivalsPageState extends State<NewArrivalsPage> {
     });
   }
 
-  num _priceOf(Map<String, dynamic> b) => num.tryParse(b['price'].toString()) ?? 0;
+  num _priceOf(Map<String, dynamic> b) =>
+      num.tryParse(b['price'].toString()) ?? 0;
 
   // Waktu terbaru antara created_at dan updated_at
   // (kalau salah satu tidak ada, dilewati)
   DateTime _latestActivity(Map<String, dynamic> b) {
     final epoch = DateTime.fromMillisecondsSinceEpoch(0);
-    final created = DateTime.tryParse((b['created_at'] ?? '').toString()) ?? epoch;
-    final updated = DateTime.tryParse((b['updated_at'] ?? '').toString()) ?? epoch;
+    final created =
+        DateTime.tryParse((b['created_at'] ?? '').toString()) ?? epoch;
+    final updated =
+        DateTime.tryParse((b['updated_at'] ?? '').toString()) ?? epoch;
     return updated.isAfter(created) ? updated : created;
   }
 
   // N buku yang paling baru dibuat atau diupdate
-  List<Map<String, dynamic>> _latest(List<Map<String, dynamic>> books,
-      {int limit = _maxNewReleases}) {
+  List<Map<String, dynamic>> _latest(
+    List<Map<String, dynamic>> books, {
+    int limit = _maxNewReleases,
+  }) {
     final list = [...books];
     list.sort((a, b) => _latestActivity(b).compareTo(_latestActivity(a)));
     return list.take(limit).toList();
@@ -190,8 +191,89 @@ class _NewArrivalsPageState extends State<NewArrivalsPage> {
     });
   }
 
+  Future<void> _showMobileFilters() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => FractionallySizedBox(
+        heightFactor: .86,
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              const SizedBox(height: 10),
+              Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD8D1CC),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+                  child: _buildSidebar(mobile: true),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _mobileFilterButton() {
+    final count =
+        _appliedGenres.length +
+        _appliedPrices.length +
+        _appliedConditions.length;
+    return OutlinedButton(
+      onPressed: _showMobileFilters,
+      style: OutlinedButton.styleFrom(
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF302D2B),
+        side: const BorderSide(color: Color(0xFFE3D9D2)),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.filter_list_rounded, size: 18),
+          const SizedBox(width: 7),
+          Text('Filter', style: GoogleFonts.inter(fontSize: 13)),
+          if (count > 0) ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: primaryOrange,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '$count',
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.sizeOf(context).width < 700;
     return Scaffold(
       appBar: CustomTopBar(activeNav: 'New Arrivals'),
       body: SingleChildScrollView(
@@ -200,14 +282,17 @@ class _NewArrivalsPageState extends State<NewArrivalsPage> {
             Container(
               width: double.infinity,
               color: const Color(0xFFECE6DF),
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 16 : 40,
+                vertical: isMobile ? 18 : 24,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'New Arrivals',
                     style: GoogleFonts.inter(
-                      fontSize: 26,
+                      fontSize: isMobile ? 23 : 26,
                       fontWeight: FontWeight.bold,
                       color: const Color(0xFF22201F),
                     ),
@@ -215,7 +300,10 @@ class _NewArrivalsPageState extends State<NewArrivalsPage> {
                   const SizedBox(height: 4),
                   Text(
                     'Discover well-loved books from readers near you.',
-                    style: GoogleFonts.inter(fontSize: 12, color: Colors.black54),
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: Colors.black54,
+                    ),
                   ),
                   const SizedBox(height: 16),
 
@@ -242,8 +330,10 @@ class _NewArrivalsPageState extends State<NewArrivalsPage> {
                             },
                             decoration: InputDecoration(
                               hintText: 'Search by title or author',
-                              hintStyle:
-                                  GoogleFonts.inter(fontSize: 12, color: Colors.grey),
+                              hintStyle: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
                               border: InputBorder.none,
                               isDense: true,
                             ),
@@ -255,14 +345,22 @@ class _NewArrivalsPageState extends State<NewArrivalsPage> {
                   const SizedBox(height: 20),
 
                   // Sidebar Filter + Main Content
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildSidebar(),
-                      const SizedBox(width: 20),
-                      Expanded(child: _buildMainContent()),
-                    ],
-                  ),
+                  if (isMobile) ...[
+                    _mobileFilterButton(),
+                    const SizedBox(height: 14),
+                    SizedBox(
+                      width: double.infinity,
+                      child: _buildMainContent(),
+                    ),
+                  ] else
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSidebar(),
+                        const SizedBox(width: 20),
+                        Expanded(child: _buildMainContent()),
+                      ],
+                    ),
                 ],
               ),
             ),
@@ -273,14 +371,16 @@ class _NewArrivalsPageState extends State<NewArrivalsPage> {
     );
   }
 
-  Widget _buildSidebar() {
+  Widget _buildSidebar({bool mobile = false}) {
     return Container(
-      width: 200,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
+      width: mobile ? double.infinity : 200,
+      padding: mobile ? EdgeInsets.zero : const EdgeInsets.all(16),
+      decoration: mobile
+          ? null
+          : BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -289,7 +389,10 @@ class _NewArrivalsPageState extends State<NewArrivalsPage> {
             children: [
               Text(
                 'Filter books',
-                style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold),
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               InkWell(
                 onTap: _resetFilters,
@@ -314,9 +417,16 @@ class _NewArrivalsPageState extends State<NewArrivalsPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: primaryOrange,
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
-              onPressed: _applyPending,
+              onPressed: () {
+                _applyPending();
+                if (mobile && Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop();
+                }
+              },
               child: Text(
                 'Apply Filters',
                 style: GoogleFonts.inter(fontSize: 11, color: Colors.white),
@@ -337,7 +447,9 @@ class _NewArrivalsPageState extends State<NewArrivalsPage> {
             snapshot.connectionState == ConnectionState.waiting) {
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: 80),
-            child: Center(child: CircularProgressIndicator(color: primaryOrange)),
+            child: Center(
+              child: CircularProgressIndicator(color: primaryOrange),
+            ),
           );
         }
 
@@ -353,7 +465,10 @@ class _NewArrivalsPageState extends State<NewArrivalsPage> {
                     style: GoogleFonts.inter(fontSize: 12, color: Colors.red),
                   ),
                   const SizedBox(height: 12),
-                  TextButton(onPressed: _reload, child: const Text('Try again')),
+                  TextButton(
+                    onPressed: _reload,
+                    child: const Text('Try again'),
+                  ),
                 ],
               ),
             ),
@@ -362,20 +477,23 @@ class _NewArrivalsPageState extends State<NewArrivalsPage> {
 
         final allBooks = snapshot.data ?? [];
         final filtered = _applySort(_applyFilters(allBooks));
-        final isFiltering = _appliedGenres.isNotEmpty ||
+        final isFiltering =
+            _appliedGenres.isNotEmpty ||
             _appliedPrices.isNotEmpty ||
             _appliedConditions.isNotEmpty ||
             _query.isNotEmpty;
 
         // Tanpa filter: New Releases = 15 buku terbaru (dibuat/diupdate).
         // Dengan filter/search: semua hasil yang cocok.
-        final releasePool = isFiltering ? filtered : _applySort(_latest(allBooks));
+        final releasePool = isFiltering
+            ? filtered
+            : _applySort(_latest(allBooks));
         final visible = (isFiltering || _showAllReleases)
             ? releasePool
             : releasePool.take(5).toList();
 
         return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Jumlah buku + Sort
             Row(
@@ -396,11 +514,15 @@ class _NewArrivalsPageState extends State<NewArrivalsPage> {
               children: [
                 Text(
                   isFiltering ? 'Results' : 'New Releases',
-                  style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 if (!isFiltering && releasePool.length > 5)
                   InkWell(
-                    onTap: () => setState(() => _showAllReleases = !_showAllReleases),
+                    onTap: () =>
+                        setState(() => _showAllReleases = !_showAllReleases),
                     child: Text(
                       _showAllReleases ? 'Show Less' : 'View All ->',
                       style: GoogleFonts.inter(
@@ -420,7 +542,10 @@ class _NewArrivalsPageState extends State<NewArrivalsPage> {
                 child: Center(
                   child: Text(
                     'No books match your search.',
-                    style: GoogleFonts.inter(fontSize: 13, color: Colors.black54),
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: Colors.black54,
+                    ),
                   ),
                 ),
               )
@@ -439,6 +564,7 @@ class _NewArrivalsPageState extends State<NewArrivalsPage> {
   }
 
   Widget _buildSortButton() {
+    final isMobile = MediaQuery.sizeOf(context).width < 700;
     return PopupMenuButton<String>(
       tooltip: 'Sort books',
       onSelected: (value) => setState(() => _sort = value),
@@ -466,7 +592,7 @@ class _NewArrivalsPageState extends State<NewArrivalsPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Sort: $_sort',
+              isMobile ? 'Sort' : 'Sort: $_sort',
               style: GoogleFonts.inter(fontSize: 10),
             ),
             const SizedBox(width: 4),
@@ -494,7 +620,10 @@ class _NewArrivalsPageState extends State<NewArrivalsPage> {
           children: [
             Text(
               'Bestsellers By Category',
-              style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
+              style: GoogleFonts.inter(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             if (byGenre.length > 5)
               InkWell(
@@ -524,7 +653,10 @@ class _NewArrivalsPageState extends State<NewArrivalsPage> {
                 _showAllBestsellers = false;
               }),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: selected ? primaryOrange : Colors.white,
                   borderRadius: BorderRadius.circular(16),
@@ -561,28 +693,41 @@ class _NewArrivalsPageState extends State<NewArrivalsPage> {
   }
 
   Widget _bookGrid(List<Map<String, dynamic>> books) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: books.length,
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 220,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
-        mainAxisExtent: 330,
-      ),
-      itemBuilder: (context, i) => BookCard(book: books[i]),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final columns = width < 700 ? 2 : (width < 1050 ? 3 : 4);
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: books.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columns,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            mainAxisExtent: 330,
+          ),
+          itemBuilder: (context, i) => BookCard(book: books[i]),
+        );
+      },
     );
   }
 
-  Widget _filterSection(String title, List<String> options, Set<String> selected) {
+  Widget _filterSection(
+    String title,
+    List<String> options,
+    Set<String> selected,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
           style: GoogleFonts.inter(
-              fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold),
+            fontSize: 10,
+            color: Colors.grey,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: 4),
         ...options.map(
@@ -602,7 +747,9 @@ class _NewArrivalsPageState extends State<NewArrivalsPage> {
                       activeColor: primaryOrange,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       onChanged: (checked) => setState(() {
-                        checked == true ? selected.add(opt) : selected.remove(opt);
+                        checked == true
+                            ? selected.add(opt)
+                            : selected.remove(opt);
                       }),
                     ),
                   ),

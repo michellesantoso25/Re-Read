@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:reread/main.dart';
 import 'package:reread/pages/buyer_pages/categories_page.dart';
 import 'package:reread/pages/buyer_pages/genre_page.dart';
+import 'package:reread/pages/buyer_pages/home_page.dart';
 import 'package:reread/pages/buyer_pages/new_arrivals_page.dart';
+import 'package:reread/pages/buyer_pages/profile_page.dart';
 
 class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
-  /// Menu utama yang sedang aktif (Orange)
   final String? activeNav;
-
-  /// Genre yang sedang dibuka (Black). Null kalau tidak sedang di halaman genre.
   final String? activeGenre;
 
-  const CustomTopBar({Key? key, this.activeNav = 'Home', this.activeGenre})
-      : super(key: key);
+  const CustomTopBar({super.key, this.activeNav = 'Home', this.activeGenre});
 
-  // Menu -> route. Menu yang belum punya halaman diisi null (tampil "coming soon").
   static const Map<String, String?> _navRoutes = {
     'Home': '/home',
     'New Arrivals': '/newArrivals',
@@ -24,225 +22,420 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
     'Help & Support': null,
   };
 
+  static const Map<String, IconData> _navIcons = {
+    'Home': Icons.home_outlined,
+    'New Arrivals': Icons.auto_stories_outlined,
+    'Categories': Icons.category_outlined,
+    'Sell a Book': Icons.sell_outlined,
+    'Help & Support': Icons.help_outline_rounded,
+  };
+
+  static const _genres = [
+    'Fiction',
+    'Non-Fiction',
+    'Mystery',
+    'Biography',
+    'Children',
+    'Young Adult',
+    'Comics & Graphic Novels',
+    'Science & Tech',
+    'Romance',
+  ];
+
+  static const _orange = Color(0xFFE05627);
+
   @override
-  Size get preferredSize => const Size.fromHeight(88);
+  Size get preferredSize => const Size.fromHeight(92);
 
   @override
   Widget build(BuildContext context) {
-    const primaryOrange = Color(0xFFE05627);
-
-    return Container(
-      color: Colors.white,
-      child: SafeArea(
-        child: Column(
-          children: [
-            // Main TopBar
-            Container(
-              height: 52,
-              padding: const EdgeInsets.symmetric(horizontal: 40),
-              decoration: const BoxDecoration(
-                border: Border(bottom: BorderSide(color: Color(0xFFEEEEEE))),
-              ),
-              child: Row(
-                children: [
-                  Image.asset(
-                    'lib/assets/logo2.png',
-                    height: 32,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: primaryOrange, width: 2),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                        ],
-                      );
-                    },
-                  ),
-                  const SizedBox(width: 40),
-
-                  // Main Navigation
-                  for (final title in _navRoutes.keys) _navLink(context, title),
-
-                  const Spacer(),
-
-                  // Cart Button
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF4F1EA),
-                      borderRadius: BorderRadius.circular(20),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final shortestSide = MediaQuery.sizeOf(context).shortestSide;
+        final phone =
+            constraints.maxWidth <= 640 ||
+            (constraints.maxWidth <= 900 && shortestSide < 600);
+        final tablet = !phone && constraints.maxWidth <= 1000;
+        final horizontalPadding = phone ? 12.0 : (tablet ? 10.0 : 32.0);
+        final mobileMenuItems = _navRoutes.keys.toList();
+        return Material(
+          color: Colors.white,
+          child: SafeArea(
+            bottom: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  height: 52,
+                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(color: Color(0xFFEEEEEE)),
                     ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.shopping_bag_outlined, size: 16, color: Color(0xFF22201F)),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Cart',
-                          style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: phone ? 112 : (tablet ? 96 : null),
+                        child: Image.asset(
+                          'lib/assets/logo2.png',
+                          height: tablet ? 28 : 32,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(
+                                Icons.menu_book_rounded,
+                                color: _orange,
+                                size: 30,
+                              ),
+                        ),
+                      ),
+                      if (phone) ...[
+                        const Spacer(),
+                        _cartButton(context, iconOnly: true),
+                        const SizedBox(width: 2),
+                        IconButton(
+                          tooltip: 'Notifikasi',
+                          icon: const Icon(
+                            Icons.notifications_none_rounded,
+                            size: 21,
+                          ),
+                          onPressed: () =>
+                              _showComingSoon(context, 'Notifikasi'),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(
+                            minWidth: 34,
+                            minHeight: 40,
+                          ),
                         ),
                         const SizedBox(width: 4),
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: primaryOrange,
-                            shape: BoxShape.circle,
+                        InkWell(
+                          onTap: () => _openProfile(context),
+                          borderRadius: BorderRadius.circular(24),
+                          child: _profileAvatar(radius: 15),
+                        ),
+                        const SizedBox(width: 8),
+                        PopupMenuButton<String>(
+                          tooltip: 'Buka menu',
+                          padding: EdgeInsets.zero,
+                          offset: const Offset(0, 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
                           ),
-                        )
+                          elevation: 4,
+                          color: Colors.white,
+                          child: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF7F3EF),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: const Color(0xFFE9E0DA),
+                              ),
+                            ),
+                            child: const Center(
+                              child: _HamburgerGlyph(color: Color(0xFF514842)),
+                            ),
+                          ),
+                          onSelected: (title) => _navigate(context, title),
+                          itemBuilder: (context) => [
+                            ...mobileMenuItems.map(
+                              (title) => PopupMenuItem<String>(
+                                value: title,
+                                height: 46,
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 30,
+                                      height: 30,
+                                      decoration: BoxDecoration(
+                                        color: title == activeNav
+                                            ? const Color(0xFFFAEEE7)
+                                            : const Color(0xFFF6F2EE),
+                                        borderRadius: BorderRadius.circular(9),
+                                      ),
+                                      child: Icon(
+                                        _navIcons[title],
+                                        size: 17,
+                                        color: title == activeNav
+                                            ? _orange
+                                            : const Color(0xFF615B57),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        title,
+                                        style: GoogleFonts.inter(
+                                          fontSize: 13,
+                                          fontWeight: title == activeNav
+                                              ? FontWeight.w700
+                                              : FontWeight.w500,
+                                          color: const Color(0xFF302D2B),
+                                        ),
+                                      ),
+                                    ),
+                                    if (title == activeNav)
+                                      const Icon(
+                                        Icons.check_rounded,
+                                        color: _orange,
+                                        size: 18,
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ] else ...[
+                        SizedBox(width: tablet ? 10 : 24),
+                        for (final title in _navRoutes.keys)
+                          _navLink(context, title, tablet: tablet),
+                        const Spacer(),
+                        _cartButton(
+                          context,
+                          iconOnly: tablet && constraints.maxWidth < 700,
+                        ),
+                        SizedBox(width: tablet ? 3 : 14),
+                        IconButton(
+                          tooltip: 'Notifikasi',
+                          icon: const Icon(Icons.notifications_none, size: 20),
+                          onPressed: () =>
+                              _showComingSoon(context, 'Notifikasi'),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(
+                            minWidth: 30,
+                            minHeight: 40,
+                          ),
+                        ),
+                        SizedBox(width: tablet ? 3 : 12),
+                        InkWell(
+                          onTap: () => _openProfile(context),
+                          borderRadius: BorderRadius.circular(24),
+                          child: _profileAvatar(radius: 16),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  height: 40,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: horizontalPadding,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        for (final genre in _genres) _genreItem(context, genre),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 16),
-
-                  // Notification Icon
-                  IconButton(
-                    icon: const Icon(Icons.notifications_none, size: 20),
-                    onPressed: () {},
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                  const SizedBox(width: 16),
-
-                  // Profile Avatar
-                  const CircleAvatar(
-                    radius: 14,
-                    backgroundColor: Color(0xFFD9D9D9),
-                    child: Icon(Icons.person, size: 18, color: Colors.white),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-
-            // Genre
-            Container(
-              height: 35,
-              padding: const EdgeInsets.symmetric(horizontal: 40),
-              color: Colors.white,
-              child: Row(
-                children: [
-                  _genreItem(context, 'Fiction'),
-                  _genreItem(context, 'Non-Fiction'),
-                  _genreItem(context, 'Mystery'),
-                  _genreItem(context, 'Biography'),
-                  _genreItem(context, 'Children'),
-                  _genreItem(context, 'Young Adult'),
-                  _genreItem(context, 'Comics & Graphic Novels'),
-                  _genreItem(context, 'Science & Tech'),
-                  _genreItem(context, 'Romance'),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _navLink(BuildContext context, String title) {
+  Widget _profileAvatar({required double radius}) {
+    final avatarUrl = supabase.auth.currentUser?.userMetadata?['avatar_url']
+        ?.toString();
+    return CircleAvatar(
+      radius: radius,
+      backgroundColor: const Color(0xFFD9D9D9),
+      backgroundImage: avatarUrl != null && avatarUrl.isNotEmpty
+          ? NetworkImage(avatarUrl)
+          : null,
+      child: avatarUrl == null || avatarUrl.isEmpty
+          ? Icon(Icons.person, size: radius + 2, color: Colors.white)
+          : null,
+    );
+  }
+
+  Widget _cartButton(BuildContext context, {bool iconOnly = false}) =>
+      Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: iconOnly ? 8 : 12,
+          vertical: 6,
+        ),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF4F1EA),
+          borderRadius: BorderRadius.circular(iconOnly ? 13 : 20),
+        ),
+        child: InkWell(
+          onTap: () => _showComingSoon(context, 'Cart'),
+          child: Row(
+            children: [
+              const Icon(Icons.shopping_bag_outlined, size: 16),
+              if (!iconOnly) ...[
+                const SizedBox(width: 6),
+                Text(
+                  'Cart',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: _orange,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
+
+  Widget _navLink(BuildContext context, String title, {required bool tablet}) {
     final isActive = title == activeNav;
     return Padding(
-      padding: const EdgeInsets.only(right: 24.0),
+      padding: EdgeInsets.only(right: tablet ? 8 : 18),
       child: InkWell(
         borderRadius: BorderRadius.circular(4),
-        onTap: () {
-          if (isActive && activeGenre == null) return; // sudah di halaman ini
-
-          if (title == 'Categories') {
-            Navigator.of(context).pushAndRemoveUntil(
-              PageRouteBuilder(
-                pageBuilder: (_, __, ___) => const CategoriesPage(),
-                transitionDuration: Duration.zero,
-                reverseTransitionDuration: Duration.zero,
-              ),
-              (r) => false,
-            );
-            return;
-          }
-          
-          if (title == 'New Arrivals') {
-            Navigator.of(context).pushAndRemoveUntil(
-              PageRouteBuilder(
-                pageBuilder: (_, __, ___) => const NewArrivalsPage(),
-                transitionDuration: Duration.zero,
-                reverseTransitionDuration: Duration.zero,
-              ),
-              (r) => false,
-            );
-            return;
-          }
-
-          final route = _navRoutes[title];
-          if (route != null) {
-            Navigator.of(context).pushNamedAndRemoveUntil(route, (r) => false);
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('$title coming soon!'),
-                duration: const Duration(seconds: 2),
-              ),
-            );
-          }
-        },
-        child: MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Text(
-              title,
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-                color: isActive ? const Color(0xFFE05627) : const Color(0xFF555555),
-              ),
+        onTap: () => _navigate(context, title),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Text(
+            title,
+            maxLines: 1,
+            softWrap: false,
+            style: GoogleFonts.inter(
+              fontSize: tablet ? 11.5 : 12,
+              fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+              color: isActive ? _orange : const Color(0xFF555555),
             ),
           ),
         ),
       ),
     );
+  }
+
+  void _navigate(BuildContext context, String title) {
+    if (title == activeNav && activeGenre == null) return;
+    if (title == 'Categories') {
+      Navigator.of(context).pushAndRemoveUntil(
+        PageRouteBuilder(
+          pageBuilder: (_, _, _) => const CategoriesPage(),
+          transitionDuration: Duration.zero,
+          reverseTransitionDuration: Duration.zero,
+        ),
+        (route) => false,
+      );
+      return;
+    }
+    if (title == 'New Arrivals') {
+      Navigator.of(context).pushAndRemoveUntil(
+        PageRouteBuilder(
+          pageBuilder: (_, _, _) => const NewArrivalsPage(),
+          transitionDuration: Duration.zero,
+          reverseTransitionDuration: Duration.zero,
+        ),
+        (route) => false,
+      );
+      return;
+    }
+    if (title == 'Home') {
+      Navigator.of(context).pushAndRemoveUntil(
+        PageRouteBuilder(
+          pageBuilder: (_, _, _) => const HomePage(),
+          transitionDuration: Duration.zero,
+          reverseTransitionDuration: Duration.zero,
+        ),
+        (route) => false,
+      );
+      return;
+    }
+    final route = _navRoutes[title];
+    if (route != null) {
+      Navigator.of(context).pushNamedAndRemoveUntil(route, (route) => false);
+    } else {
+      _showComingSoon(context, title);
+    }
+  }
+
+  void _openProfile(BuildContext context) {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        pageBuilder: (_, _, _) => const ProfilePage(),
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
+      ),
+    );
+  }
+
+  void _showComingSoon(BuildContext context, String title) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('$title segera tersedia.')));
   }
 
   Widget _genreItem(BuildContext context, String title) {
     final isActive = title == activeGenre;
     return Padding(
-      padding: const EdgeInsets.only(right: 20.0),
+      padding: const EdgeInsets.only(right: 18),
       child: InkWell(
         borderRadius: BorderRadius.circular(4),
         onTap: () {
-          if (isActive) return; // sudah di genre ini
+          if (isActive) return;
           final page = PageRouteBuilder(
-            pageBuilder: (_, __, ___) => GenrePage(genre: title),
-            // Tanpa animasi supaya pindah genre terasa instan
+            pageBuilder: (_, _, _) => GenrePage(genre: title),
             transitionDuration: Duration.zero,
             reverseTransitionDuration: Duration.zero,
           );
           if (activeGenre != null) {
-            // Sudah di halaman genre: ganti, jangan ditumpuk
             Navigator.of(context).pushReplacement(page);
           } else {
             Navigator.of(context).push(page);
           }
         },
-        child: MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
-            child: Text(
-              title,
-              style: GoogleFonts.inter(
-                fontSize: 11,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                color: isActive ? Colors.black : const Color(0xFF666666),
-              ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 2),
+          child: Text(
+            title,
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+              color: isActive ? Colors.black : const Color(0xFF666666),
             ),
           ),
         ),
       ),
     );
   }
+}
+
+class _HamburgerGlyph extends StatelessWidget {
+  final Color color;
+
+  const _HamburgerGlyph({required this.color});
+
+  @override
+  Widget build(BuildContext context) => Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      _line(16),
+      const SizedBox(height: 4),
+      _line(11),
+      const SizedBox(height: 4),
+      _line(16),
+    ],
+  );
+
+  Widget _line(double width) => Container(
+    width: width,
+    height: 1.8,
+    decoration: BoxDecoration(
+      color: color,
+      borderRadius: BorderRadius.circular(2),
+    ),
+  );
 }

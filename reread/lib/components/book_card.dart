@@ -57,18 +57,30 @@ class BookCard extends StatelessWidget {
           ),
           const Spacer(),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                formatRupiah(book['price']),
-                style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.bold),
+              Expanded(
+                child: Text(
+                  formatRupiah(book['price']),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
-              Text(
-                condition,
-                style: GoogleFonts.inter(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w600,
-                  color: _conditionColor(condition),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  condition,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.right,
+                  style: GoogleFonts.inter(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: _conditionColor(condition),
+                  ),
                 ),
               ),
             ],
@@ -89,7 +101,9 @@ class BookCard extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFE05627),
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
               ),
               onPressed: stock > 0 ? () {} : null,
               child: Text(
@@ -138,7 +152,9 @@ class BookCard extends StatelessWidget {
   Widget _placeholder() {
     return Container(
       color: Colors.grey.shade300,
-      child: const Center(child: Icon(Icons.book, size: 40, color: Colors.white)),
+      child: const Center(
+        child: Icon(Icons.book, size: 40, color: Colors.white),
+      ),
     );
   }
 }

@@ -50,10 +50,7 @@ class _RegisterPageState extends State<RegisterPage> {
       final res = await supabase.auth.signUp(
         email: email,
         password: password,
-        data: {
-          'full_name': fullName,
-          'phone_number': phone,
-        },
+        data: {'full_name': fullName, 'phone_number': phone},
       );
 
       // 2. Jika session belum aktif otomatis, langsung paksa sign in
@@ -90,7 +87,9 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width > 800;
+    final viewportWidth = MediaQuery.sizeOf(context).width;
+    final isDesktop = viewportWidth > 800;
+    final isMobile = viewportWidth < 600;
 
     return Scaffold(
       appBar: const CustomNavbar(),
@@ -102,7 +101,10 @@ class _RegisterPageState extends State<RegisterPage> {
               flex: 4,
               child: Container(
                 color: const Color(0xFF22201F),
-                padding: const EdgeInsets.symmetric(horizontal: 50.0, vertical: 40.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 50.0,
+                  vertical: 40.0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -115,7 +117,10 @@ class _RegisterPageState extends State<RegisterPage> {
                         return Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            border: Border.all(color: const Color(0xFFE05627), width: 2),
+                            border: Border.all(
+                              color: const Color(0xFFE05627),
+                              width: 2,
+                            ),
                             borderRadius: BorderRadius.circular(8),
                           ),
                         );
@@ -146,7 +151,10 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     Text(
                       'A circular marketplace for curious readers.',
-                      style: GoogleFonts.inter(color: Colors.white38, fontSize: 12),
+                      style: GoogleFonts.inter(
+                        color: Colors.white38,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
@@ -158,13 +166,19 @@ class _RegisterPageState extends State<RegisterPage> {
             flex: 5,
             child: Container(
               color: const Color(0xFFECE6DF),
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 16.0 : 24.0,
+                vertical: 12.0,
+              ),
               child: Center(
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Container(
-                    width: 400,
-                    padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 28.0),
+                    width: isMobile ? viewportWidth - 32 : 400,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32.0,
+                      vertical: 28.0,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20.0),
@@ -221,15 +235,25 @@ class _RegisterPageState extends State<RegisterPage> {
                             style: GoogleFonts.inter(fontSize: 12),
                             decoration: InputDecoration(
                               hintText: 'Enter full name',
-                              hintStyle: GoogleFonts.inter(fontSize: 12, color: Colors.grey),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              hintStyle: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFE0E0E0),
+                                ),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFE0E0E0),
+                                ),
                               ),
                             ),
                           ),
@@ -256,15 +280,25 @@ class _RegisterPageState extends State<RegisterPage> {
                             style: GoogleFonts.inter(fontSize: 12),
                             decoration: InputDecoration(
                               hintText: 'Enter email address',
-                              hintStyle: GoogleFonts.inter(fontSize: 12, color: Colors.grey),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              hintStyle: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFE0E0E0),
+                                ),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFE0E0E0),
+                                ),
                               ),
                             ),
                           ),
@@ -290,15 +324,25 @@ class _RegisterPageState extends State<RegisterPage> {
                             style: GoogleFonts.inter(fontSize: 12),
                             decoration: InputDecoration(
                               hintText: 'Enter password',
-                              hintStyle: GoogleFonts.inter(fontSize: 12, color: Colors.grey),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              hintStyle: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFE0E0E0),
+                                ),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFE0E0E0),
+                                ),
                               ),
                             ),
                           ),
@@ -324,15 +368,25 @@ class _RegisterPageState extends State<RegisterPage> {
                             style: GoogleFonts.inter(fontSize: 12),
                             decoration: InputDecoration(
                               hintText: 'Enter phone number',
-                              hintStyle: GoogleFonts.inter(fontSize: 12, color: Colors.grey),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              hintStyle: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFE0E0E0),
+                                ),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFE0E0E0),
+                                ),
                               ),
                             ),
                           ),
@@ -376,11 +430,17 @@ class _RegisterPageState extends State<RegisterPage> {
                           children: [
                             Text(
                               'Already have an account? ',
-                              style: GoogleFonts.inter(fontSize: 11, color: Colors.black54),
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                color: Colors.black54,
+                              ),
                             ),
                             GestureDetector(
                               onTap: () {
-                                Navigator.pushReplacementNamed(context, '/login');
+                                Navigator.pushReplacementNamed(
+                                  context,
+                                  '/login',
+                                );
                               },
                               child: Text(
                                 'Log in',

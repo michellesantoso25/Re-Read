@@ -25,48 +25,57 @@ class _CategoriesPageState extends State<CategoriesPage> {
   static const List<Map<String, dynamic>> _categories = [
     {
       'name': 'Fiction',
-      'image': 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80',
+      'image':
+          'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80',
       'fallbackColor': Color(0xFF2B4C3F),
     },
     {
       'name': 'Non-Fiction',
-      'image': 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=800&q=80',
+      'image':
+          'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=800&q=80',
       'fallbackColor': Color(0xFF5A2A27),
     },
     {
       'name': 'Mystery',
-      'image': 'https://images.unsplash.com/photo-1773047747721-f75d546d7290?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D',
+      'image':
+          'https://images.unsplash.com/photo-1773047747721-f75d546d7290?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D',
       'fallbackColor': Color(0xFF1F2D3A),
     },
     {
       'name': 'Biography',
-      'image': 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800&q=80',
+      'image':
+          'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800&q=80',
       'fallbackColor': Color(0xFF6E5338),
     },
     {
       'name': 'Children',
-      'image': 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800&q=80',
+      'image':
+          'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800&q=80',
       'fallbackColor': Color(0xFF8C6D53),
     },
     {
       'name': 'Young Adult',
-      'image': 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80',
+      'image':
+          'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80',
       'fallbackColor': Color(0xFF4A5D6E),
     },
     {
       'name': 'Comics & Graphic Novels',
       'genreValue': 'Comics & Graphic Novels',
-      'image': 'https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?w=800&q=80',
+      'image':
+          'https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?w=800&q=80',
       'fallbackColor': Color(0xFF1E56A0),
     },
     {
       'name': 'Romance',
-      'image': 'https://images.unsplash.com/photo-1518621736915-f3b1c41bfd00?w=800&q=80',
+      'image':
+          'https://images.unsplash.com/photo-1518621736915-f3b1c41bfd00?w=800&q=80',
       'fallbackColor': Color(0xFF7A4B56),
     },
     {
       'name': 'Science & Tech',
-      'image': 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80',
+      'image':
+          'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80',
       'fallbackColor': Color(0xFF1D4E89),
     },
   ];
@@ -92,9 +101,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
   void _navigateToGenre(String genreName) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => GenrePage(genre: genreName),
-      ),
+      MaterialPageRoute(builder: (context) => GenrePage(genre: genreName)),
     );
   }
 
@@ -109,6 +116,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.sizeOf(context).width < 700;
     return Scaffold(
       appBar: CustomTopBar(activeNav: 'Categories'),
       body: SingleChildScrollView(
@@ -117,14 +125,17 @@ class _CategoriesPageState extends State<CategoriesPage> {
             Container(
               width: double.infinity,
               color: const Color(0xFFECE6DF),
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 16 : 40,
+                vertical: isMobile ? 18 : 24,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Search your book by categories',
                     style: GoogleFonts.inter(
-                      fontSize: 26,
+                      fontSize: isMobile ? 22 : 26,
                       fontWeight: FontWeight.bold,
                       color: const Color(0xFF22201F),
                     ),
@@ -132,7 +143,10 @@ class _CategoriesPageState extends State<CategoriesPage> {
                   const SizedBox(height: 4),
                   Text(
                     'Discover well-loved books from readers near you.',
-                    style: GoogleFonts.inter(fontSize: 12, color: Colors.black54),
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: Colors.black54,
+                    ),
                   ),
                   const SizedBox(height: 16),
 
@@ -158,7 +172,10 @@ class _CategoriesPageState extends State<CategoriesPage> {
                             },
                             decoration: InputDecoration(
                               hintText: 'Search by title or author',
-                              hintStyle: GoogleFonts.inter(fontSize: 12, color: Colors.grey),
+                              hintStyle: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
                               border: InputBorder.none,
                               isDense: true,
                             ),
@@ -170,7 +187,10 @@ class _CategoriesPageState extends State<CategoriesPage> {
                   const SizedBox(height: 24),
 
                   // Kosong -> grid kategori, ada isi -> hasil buku
-                  if (_query.isEmpty) _buildCategoryGrid() else _buildSearchResults(),
+                  if (_query.isEmpty)
+                    _buildCategoryGrid()
+                  else
+                    _buildSearchResults(),
                   const SizedBox(height: 20),
                 ],
               ),
@@ -185,7 +205,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
   Widget _buildCategoryGrid() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final crossAxisCount = constraints.maxWidth > 600 ? 2 : 1;
+        final crossAxisCount = 2;
 
         return GridView.builder(
           shrinkWrap: true,
@@ -200,7 +220,8 @@ class _CategoriesPageState extends State<CategoriesPage> {
           itemBuilder: (context, index) {
             final category = _categories[index];
             final displayName = category['name'] as String;
-            final genreParam = (category['genreValue'] ?? displayName) as String;
+            final genreParam =
+                (category['genreValue'] ?? displayName) as String;
 
             return _CategoryCard(
               title: displayName,
@@ -223,7 +244,9 @@ class _CategoriesPageState extends State<CategoriesPage> {
             snapshot.connectionState == ConnectionState.waiting) {
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: 80),
-            child: Center(child: CircularProgressIndicator(color: primaryOrange)),
+            child: Center(
+              child: CircularProgressIndicator(color: primaryOrange),
+            ),
           );
         }
 
@@ -239,7 +262,10 @@ class _CategoriesPageState extends State<CategoriesPage> {
                     style: GoogleFonts.inter(fontSize: 12, color: Colors.red),
                   ),
                   const SizedBox(height: 12),
-                  TextButton(onPressed: _reload, child: const Text('Try again')),
+                  TextButton(
+                    onPressed: _reload,
+                    child: const Text('Try again'),
+                  ),
                 ],
               ),
             ),
@@ -258,7 +284,10 @@ class _CategoriesPageState extends State<CategoriesPage> {
             const SizedBox(height: 4),
             Text(
               'Results',
-              style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
+              style: GoogleFonts.inter(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 12),
             if (results.isEmpty)
@@ -267,28 +296,39 @@ class _CategoriesPageState extends State<CategoriesPage> {
                 child: Center(
                   child: Text(
                     'No books match your search.',
-                    style: GoogleFonts.inter(fontSize: 13, color: Colors.black54),
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: Colors.black54,
+                    ),
                   ),
                 ),
               )
             else
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: results.length,
-                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 220,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  mainAxisExtent: 330,
-                ),
-                itemBuilder: (context, i) => BookCard(book: results[i]),
-              ),
+              _buildBookGrid(results),
           ],
         );
       },
     );
   }
+
+  Widget _buildBookGrid(List<Map<String, dynamic>> books) => LayoutBuilder(
+    builder: (context, constraints) {
+      final width = constraints.maxWidth;
+      final columns = width < 700 ? 2 : (width < 1050 ? 3 : 4);
+      return GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: books.length,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: columns,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          mainAxisExtent: 330,
+        ),
+        itemBuilder: (context, index) => BookCard(book: books[index]),
+      );
+    },
+  );
 }
 
 class _CategoryCard extends StatefulWidget {
@@ -344,7 +384,8 @@ class _CategoryCardState extends State<_CategoryCard> {
                 Image.network(
                   widget.imageUrl,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(color: widget.fallbackColor),
+                  errorBuilder: (_, __, ___) =>
+                      Container(color: widget.fallbackColor),
                 ),
                 Container(
                   decoration: BoxDecoration(

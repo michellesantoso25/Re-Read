@@ -35,11 +35,7 @@ class _HomePageState extends State<HomePage> {
     'Over Rp 100.000': [100001, null],
   };
 
-  static const List<String> _conditions = [
-    'Like new',
-    'Very good',
-    'Good',
-  ];
+  static const List<String> _conditions = ['Like new', 'Very good', 'Good'];
 
   final TextEditingController _searchController = TextEditingController();
 
@@ -82,13 +78,18 @@ class _HomePageState extends State<HomePage> {
   // Waktu terbaru antara created_at dan updated_at
   DateTime _latestActivity(Map<String, dynamic> b) {
     final epoch = DateTime.fromMillisecondsSinceEpoch(0);
-    final created = DateTime.tryParse((b['created_at'] ?? '').toString()) ?? epoch;
-    final updated = DateTime.tryParse((b['updated_at'] ?? '').toString()) ?? epoch;
+    final created =
+        DateTime.tryParse((b['created_at'] ?? '').toString()) ?? epoch;
+    final updated =
+        DateTime.tryParse((b['updated_at'] ?? '').toString()) ?? epoch;
     return updated.isAfter(created) ? updated : created;
   }
 
   // 15 buku yang paling baru dibuat atau diupdate
-  List<Map<String, dynamic>> _latest(List<Map<String, dynamic>> books, {int limit = 15}) {
+  List<Map<String, dynamic>> _latest(
+    List<Map<String, dynamic>> books, {
+    int limit = 15,
+  }) {
     final list = [...books];
     list.sort((a, b) => _latestActivity(b).compareTo(_latestActivity(a)));
     return list.take(limit).toList();
@@ -120,10 +121,7 @@ class _HomePageState extends State<HomePage> {
       }
 
       // Condition (mendukung nama kolom 'book_condition' atau 'condition')
-      final condition = (b['condition'] ?? '')
-          .toString()
-          .trim()
-          .toLowerCase();
+      final condition = (b['condition'] ?? '').toString().trim().toLowerCase();
       if (_appliedConditions.isNotEmpty &&
           !_appliedConditions.any((c) => c.toLowerCase() == condition)) {
         return false;
@@ -166,8 +164,89 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Future<void> _showMobileFilters() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => FractionallySizedBox(
+        heightFactor: .86,
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              const SizedBox(height: 10),
+              Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD8D1CC),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+                  child: _buildSidebar(mobile: true),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _mobileFilterButton() {
+    final count =
+        _appliedGenres.length +
+        _appliedPrices.length +
+        _appliedConditions.length;
+    return OutlinedButton(
+      onPressed: _showMobileFilters,
+      style: OutlinedButton.styleFrom(
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF302D2B),
+        side: const BorderSide(color: Color(0xFFE3D9D2)),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.filter_list_rounded, size: 18),
+          const SizedBox(width: 7),
+          Text('Filter', style: GoogleFonts.inter(fontSize: 13)),
+          if (count > 0) ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: primaryOrange,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '$count',
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.sizeOf(context).width < 700;
     return Scaffold(
       appBar: const CustomTopBar(),
       body: SingleChildScrollView(
@@ -176,7 +255,10 @@ class _HomePageState extends State<HomePage> {
             Container(
               width: double.infinity,
               color: const Color(0xFFECE6DF),
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 16 : 40,
+                vertical: isMobile ? 18 : 24,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -184,7 +266,7 @@ class _HomePageState extends State<HomePage> {
                   Text(
                     'Find your next chapter',
                     style: GoogleFonts.inter(
-                      fontSize: 26,
+                      fontSize: isMobile ? 23 : 26,
                       fontWeight: FontWeight.bold,
                       color: const Color(0xFF22201F),
                     ),
@@ -192,7 +274,10 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(height: 4),
                   Text(
                     'Discover well-loved books from readers near you.',
-                    style: GoogleFonts.inter(fontSize: 12, color: Colors.black54),
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: Colors.black54,
+                    ),
                   ),
                   const SizedBox(height: 16),
 
@@ -219,7 +304,10 @@ class _HomePageState extends State<HomePage> {
                             },
                             decoration: InputDecoration(
                               hintText: 'Search by title or author',
-                              hintStyle: GoogleFonts.inter(fontSize: 12, color: Colors.grey),
+                              hintStyle: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
                               border: InputBorder.none,
                               isDense: true,
                             ),
@@ -231,14 +319,22 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(height: 20),
 
                   // Layout Sidebar Filter + Main Content
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildSidebar(),
-                      const SizedBox(width: 20),
-                      Expanded(child: _buildMainContent()),
-                    ],
-                  ),
+                  if (isMobile) ...[
+                    _mobileFilterButton(),
+                    const SizedBox(height: 14),
+                    SizedBox(
+                      width: double.infinity,
+                      child: _buildMainContent(),
+                    ),
+                  ] else
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSidebar(),
+                        const SizedBox(width: 20),
+                        Expanded(child: _buildMainContent()),
+                      ],
+                    ),
                 ],
               ),
             ),
@@ -251,14 +347,16 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildSidebar() {
+  Widget _buildSidebar({bool mobile = false}) {
     return Container(
-      width: 200,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
+      width: mobile ? double.infinity : 200,
+      padding: mobile ? EdgeInsets.zero : const EdgeInsets.all(16),
+      decoration: mobile
+          ? null
+          : BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -267,7 +365,10 @@ class _HomePageState extends State<HomePage> {
             children: [
               Text(
                 'Filter books',
-                style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold),
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               InkWell(
                 onTap: _resetFilters,
@@ -292,9 +393,16 @@ class _HomePageState extends State<HomePage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: primaryOrange,
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
-              onPressed: _applyPending,
+              onPressed: () {
+                _applyPending();
+                if (mobile && Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop();
+                }
+              },
               child: Text(
                 'Apply Filters',
                 style: GoogleFonts.inter(fontSize: 11, color: Colors.white),
@@ -307,11 +415,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildMainContent() {
+    final isMobile = MediaQuery.sizeOf(context).width < 700;
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // Ads Banner
         Container(
-          height: 160,
+          height: isMobile ? 112 : 160,
           width: double.infinity,
           decoration: BoxDecoration(
             color: const Color(0xFFD3622A),
@@ -321,7 +431,7 @@ class _HomePageState extends State<HomePage> {
             child: Text(
               'Put Ads Here',
               style: GoogleFonts.inter(
-                fontSize: 28,
+                fontSize: isMobile ? 20 : 28,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
@@ -338,7 +448,9 @@ class _HomePageState extends State<HomePage> {
                 snapshot.connectionState == ConnectionState.waiting) {
               return const Padding(
                 padding: EdgeInsets.symmetric(vertical: 80),
-                child: Center(child: CircularProgressIndicator(color: primaryOrange)),
+                child: Center(
+                  child: CircularProgressIndicator(color: primaryOrange),
+                ),
               );
             }
 
@@ -351,10 +463,16 @@ class _HomePageState extends State<HomePage> {
                       Text(
                         'Failed to load books.\n${snapshot.error}',
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.inter(fontSize: 12, color: Colors.red),
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: Colors.red,
+                        ),
                       ),
                       const SizedBox(height: 12),
-                      TextButton(onPressed: _reload, child: const Text('Try again')),
+                      TextButton(
+                        onPressed: _reload,
+                        child: const Text('Try again'),
+                      ),
                     ],
                   ),
                 ),
@@ -364,12 +482,16 @@ class _HomePageState extends State<HomePage> {
             final allBooks = snapshot.data ?? [];
             final filtered = _applyFilters(allBooks);
             final isFiltering =
-                _appliedGenres.isNotEmpty || _appliedPrices.isNotEmpty ||
-                _appliedConditions.isNotEmpty || _query.isNotEmpty;
+                _appliedGenres.isNotEmpty ||
+                _appliedPrices.isNotEmpty ||
+                _appliedConditions.isNotEmpty ||
+                _query.isNotEmpty;
 
             // Tanpa filter: New Releases = 15 buku terbaru. Dengan filter/search: semua hasil.
             final releasePool = isFiltering ? filtered : _latest(allBooks);
-            final visible = (isFiltering || _showAll) ? releasePool : releasePool.take(5).toList();
+            final visible = (isFiltering || _showAll)
+                ? releasePool
+                : releasePool.take(5).toList();
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -383,12 +505,18 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         Text(
                           '${filtered.length} books available',
-                          style: GoogleFonts.inter(fontSize: 10, color: Colors.grey),
+                          style: GoogleFonts.inter(
+                            fontSize: 10,
+                            color: Colors.grey,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           isFiltering ? 'Results' : 'New Releases',
-                          style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -414,23 +542,15 @@ class _HomePageState extends State<HomePage> {
                     child: Center(
                       child: Text(
                         'No books match your search.',
-                        style: GoogleFonts.inter(fontSize: 13, color: Colors.black54),
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: Colors.black54,
+                        ),
                       ),
                     ),
                   )
                 else
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: visible.length,
-                    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 220,
-                      mainAxisSpacing: 16,
-                      crossAxisSpacing: 16,
-                      mainAxisExtent: 330,
-                    ),
-                    itemBuilder: (context, i) => BookCard(book: visible[i]),
-                  ),
+                  _buildBookGrid(visible),
               ],
             );
           },
@@ -439,13 +559,41 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _filterSection(String title, List<String> options, Set<String> selected) {
+  Widget _buildBookGrid(List<Map<String, dynamic>> books) => LayoutBuilder(
+    builder: (context, constraints) {
+      final width = constraints.maxWidth;
+      // Keep two book cards side by side on phones, including narrow screens.
+      final columns = width < 700 ? 2 : (width < 1050 ? 3 : 4);
+      return GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: books.length,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: columns,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          mainAxisExtent: 330,
+        ),
+        itemBuilder: (context, i) => BookCard(book: books[i]),
+      );
+    },
+  );
+
+  Widget _filterSection(
+    String title,
+    List<String> options,
+    Set<String> selected,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: GoogleFonts.inter(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold),
+          style: GoogleFonts.inter(
+            fontSize: 10,
+            color: Colors.grey,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: 4),
         ...options.map(
@@ -465,7 +613,9 @@ class _HomePageState extends State<HomePage> {
                       activeColor: primaryOrange,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       onChanged: (checked) => setState(() {
-                        checked == true ? selected.add(opt) : selected.remove(opt);
+                        checked == true
+                            ? selected.add(opt)
+                            : selected.remove(opt);
                       }),
                     ),
                   ),

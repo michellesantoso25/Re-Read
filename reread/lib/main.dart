@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:reread/pages/main_pages/login.dart';
 import 'package:reread/pages/main_pages/register.dart';
 import 'package:reread/pages/buyer_pages/home_page.dart';
+import 'package:reread/pages/buyer_pages/profile_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,9 +36,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFFECE6DF),
         textTheme: GoogleFonts.interTextTheme(Theme.of(context).textTheme),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFE05627),
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFE05627)),
         useMaterial3: true,
       ),
       initialRoute: session != null ? '/home' : '/login',
@@ -45,6 +44,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/home': (context) => const HomePage(),
+        '/profile': (context) => const ProfilePage(),
       },
     );
   }

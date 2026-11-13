@@ -86,7 +86,9 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width > 800;
+    final viewportWidth = MediaQuery.sizeOf(context).width;
+    final isDesktop = viewportWidth > 800;
+    final isMobile = viewportWidth < 600;
 
     return Scaffold(
       appBar: const CustomNavbar(),
@@ -162,15 +164,15 @@ class _LoginPageState extends State<LoginPage> {
             flex: 5,
             child: Container(
               color: const Color(0xFFECE6DF),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24.0,
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 16.0 : 24.0,
                 vertical: 16.0,
               ),
               child: Center(
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Container(
-                    width: 400,
+                    width: isMobile ? viewportWidth - 32 : 400,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 32.0,
                       vertical: 32.0,
@@ -310,8 +312,9 @@ class _LoginPageState extends State<LoginPage> {
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFFE05627),
-                              disabledBackgroundColor:
-                                  const Color(0xFFE05627).withOpacity(0.6),
+                              disabledBackgroundColor: const Color(
+                                0xFFE05627,
+                              ).withOpacity(0.6),
                               elevation: 0,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20),
@@ -354,7 +357,9 @@ class _LoginPageState extends State<LoginPage> {
                             GestureDetector(
                               onTap: () {
                                 Navigator.pushReplacementNamed(
-                                    context, '/register');
+                                  context,
+                                  '/register',
+                                );
                               },
                               child: Text(
                                 'Register',

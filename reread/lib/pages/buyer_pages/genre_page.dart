@@ -44,6 +44,7 @@ class _GenrePageState extends State<GenrePage> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.sizeOf(context).width < 700;
     return Scaffold(
       appBar: CustomTopBar(activeNav: 'Categories', activeGenre: widget.genre),
       body: SingleChildScrollView(
@@ -52,14 +53,17 @@ class _GenrePageState extends State<GenrePage> {
             Container(
               width: double.infinity,
               color: const Color(0xFFECE6DF),
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 16 : 40,
+                vertical: isMobile ? 18 : 24,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     widget.genre,
                     style: GoogleFonts.inter(
-                      fontSize: 26,
+                      fontSize: isMobile ? 23 : 26,
                       fontWeight: FontWeight.bold,
                       color: const Color(0xFF22201F),
                     ),
@@ -94,7 +98,9 @@ class _GenrePageState extends State<GenrePage> {
     if (books == null) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 80),
-        child: Center(child: CircularProgressIndicator(color: Color(0xFFE05627))),
+        child: Center(
+          child: CircularProgressIndicator(color: Color(0xFFE05627)),
+        ),
       );
     }
 
@@ -118,17 +124,23 @@ class _GenrePageState extends State<GenrePage> {
           style: GoogleFonts.inter(fontSize: 11, color: Colors.grey),
         ),
         const SizedBox(height: 12),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: books.length,
-          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-            maxCrossAxisExtent: 220,
-            mainAxisSpacing: 16,
-            crossAxisSpacing: 16,
-            mainAxisExtent: 330,
-          ),
-          itemBuilder: (context, i) => BookCard(book: books[i]),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            final columns = width < 700 ? 2 : (width < 1050 ? 3 : 4);
+            return GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: books.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: columns,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                mainAxisExtent: 330,
+              ),
+              itemBuilder: (context, i) => BookCard(book: books[i]),
+            );
+          },
         ),
       ],
     );
