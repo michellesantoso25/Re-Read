@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:reread/main.dart';
+import 'package:reread/services/cart_service.dart';
+
 import 'package:reread/pages/buyer_pages/categories_page.dart';
 import 'package:reread/pages/buyer_pages/cart_page.dart';
 import 'package:reread/pages/buyer_pages/genre_page.dart';
 import 'package:reread/pages/buyer_pages/home_page.dart';
 import 'package:reread/pages/buyer_pages/new_arrivals_page.dart';
 import 'package:reread/pages/buyer_pages/profile_page.dart';
-import 'package:reread/services/cart_service.dart';
+import 'package:reread/pages/buyer_pages/sell_book_page.dart';
+
 
 class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
   final String? activeNav;
@@ -20,8 +23,8 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
     'Home': '/home',
     'New Arrivals': '/newArrivals',
     'Categories': '/categories',
-    'Sell a Book': null,
-    'Help & Support': null,
+    'Sell a Book': '/sellBook',
+    'Help & Support': 'null',
   };
 
   static const Map<String, IconData> _navIcons = {
@@ -389,6 +392,17 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
       Navigator.of(context).pushAndRemoveUntil(
         PageRouteBuilder(
           pageBuilder: (_, _, _) => const HomePage(),
+          transitionDuration: Duration.zero,
+          reverseTransitionDuration: Duration.zero,
+        ),
+        (route) => false,
+      );
+      return;
+    }
+    if (title == 'Sell a Book') {
+      Navigator.of(context).pushAndRemoveUntil(
+        PageRouteBuilder(
+          pageBuilder: (_, _, _) => const SellBookPage(),
           transitionDuration: Duration.zero,
           reverseTransitionDuration: Duration.zero,
         ),
