@@ -3,10 +3,12 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:reread/main.dart';
 import 'package:reread/pages/buyer_pages/categories_page.dart';
+import 'package:reread/pages/buyer_pages/cart_page.dart';
 import 'package:reread/pages/buyer_pages/genre_page.dart';
 import 'package:reread/pages/buyer_pages/home_page.dart';
 import 'package:reread/pages/buyer_pages/new_arrivals_page.dart';
 import 'package:reread/pages/buyer_pages/profile_page.dart';
+import 'package:reread/services/cart_service.dart';
 
 class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
   final String? activeNav;
@@ -95,7 +97,10 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
                       ),
                       if (phone) ...[
                         const Spacer(),
-                        _cartButton(context, iconOnly: true),
+                        _cartButton(
+                          context,
+                          iconOnly: constraints.maxWidth < 380,
+                        ),
                         const SizedBox(width: 2),
                         IconButton(
                           tooltip: 'Notifications',
@@ -261,40 +266,73 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   Widget _cartButton(BuildContext context, {bool iconOnly = false}) =>
-      Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: iconOnly ? 8 : 12,
-          vertical: 6,
-        ),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF4F1EA),
-          borderRadius: BorderRadius.circular(iconOnly ? 13 : 20),
-        ),
-        child: InkWell(
-          onTap: () => _showComingSoon(context, 'Cart'),
-          child: Row(
-            children: [
-              const Icon(Icons.shopping_bag_outlined, size: 16),
-              if (!iconOnly) ...[
-                const SizedBox(width: 6),
-                Text(
-                  'Cart',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+      AnimatedBuilder(
+        animation: CartService.instance,
+        builder: (context, _) => Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: iconOnly ? 8 : 12,
+            vertical: 6,
+          ),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF4F1EA),
+            borderRadius: BorderRadius.circular(iconOnly ? 13 : 20),
+          ),
+          child: InkWell(
+            onTap: () => Navigator.of(context).push(
+              PageRouteBuilder<void>(
+                pageBuilder: (_, _, _) => const CartPage(),
+                transitionDuration: Duration.zero,
+                reverseTransitionDuration: Duration.zero,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.shopping_bag_outlined, size: 16),
+                if (!iconOnly) ...[
+                  const SizedBox(width: 6),
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Text(
+                        'Cart',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      if (CartService.instance.itemCount > 0)
+                        Positioned(
+                          top: -7,
+                          right: -21,
+                          child: Container(
+                            constraints: const BoxConstraints(
+                              minWidth: 16,
+                              minHeight: 16,
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 3),
+                            decoration: const BoxDecoration(
+                              color: _orange,
+                              shape: BoxShape.circle,
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              CartService.instance.itemCount > 99
+                                  ? '99+'
+                                  : '${CartService.instance.itemCount}',
+                              style: GoogleFonts.inter(
+                                color: Colors.white,
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 4),
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: _orange,
-                    shape: BoxShape.circle,
-                  ),
-                ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       );

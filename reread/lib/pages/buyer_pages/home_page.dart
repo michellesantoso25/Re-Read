@@ -170,31 +170,36 @@ class _HomePageState extends State<HomePage> {
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => FractionallySizedBox(
-        heightFactor: .86,
-        child: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Column(
-            children: [
-              const SizedBox(height: 10),
-              Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFD8D1CC),
-                  borderRadius: BorderRadius.circular(4),
+      builder: (_) => StatefulBuilder(
+        builder: (context, setModalState) => FractionallySizedBox(
+          heightFactor: .86,
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Column(
+              children: [
+                const SizedBox(height: 10),
+                Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD8D1CC),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                 ),
-              ),
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
-                  child: _buildSidebar(mobile: true),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+                    child: _buildSidebar(
+                      mobile: true,
+                      setModalState: setModalState,
+                    ),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -347,7 +352,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildSidebar({bool mobile = false}) {
+  Widget _buildSidebar({bool mobile = false, StateSetter? setModalState}) {
     return Container(
       width: mobile ? double.infinity : 200,
       padding: mobile ? EdgeInsets.zero : const EdgeInsets.all(16),
@@ -371,7 +376,10 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               InkWell(
-                onTap: _resetFilters,
+                onTap: () {
+                  _resetFilters();
+                  setModalState?.call(() {});
+                },
                 child: Text(
                   'Reset',
                   style: GoogleFonts.inter(fontSize: 10, color: primaryOrange),
@@ -380,11 +388,21 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
           const SizedBox(height: 12),
-          _filterSection('GENRE', _genres, _pendingGenres),
+          _filterSection('GENRE', _genres, _pendingGenres, setModalState),
           const SizedBox(height: 12),
-          _filterSection('PRICE', _priceRanges.keys.toList(), _pendingPrices),
+          _filterSection(
+            'PRICE',
+            _priceRanges.keys.toList(),
+            _pendingPrices,
+            setModalState,
+          ),
           const SizedBox(height: 12),
-          _filterSection('CONDITION', _conditions, _pendingConditions),
+          _filterSection(
+            'CONDITION',
+            _conditions,
+            _pendingConditions,
+            setModalState,
+          ),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
@@ -571,13 +589,13 @@ class _HomePageState extends State<HomePage> {
       final int columns = width < 700
           ? 2 // HP selalu 2
           : ((width + spacing) / (minCardWidth + spacing))
-              .floor()
-              .clamp(2, 5)
-              .toInt();
+                .floor()
+                .clamp(2, 5)
+                .toInt();
 
       final double cardWidth = ((width - spacing * (columns - 1)) / columns)
-        .clamp(0.0, maxCardWidth)
-        .toDouble();
+          .clamp(0.0, maxCardWidth)
+          .toDouble();
 
       return Wrap(
         spacing: spacing,
@@ -598,7 +616,16 @@ class _HomePageState extends State<HomePage> {
     String title,
     List<String> options,
     Set<String> selected,
+    StateSetter? setModalState,
   ) {
+    void updateSelection(VoidCallback update) {
+      if (setModalState != null) {
+        setModalState(update);
+      } else {
+        setState(update);
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -613,7 +640,7 @@ class _HomePageState extends State<HomePage> {
         const SizedBox(height: 4),
         ...options.map(
           (opt) => InkWell(
-            onTap: () => setState(() {
+            onTap: () => updateSelection(() {
               selected.contains(opt) ? selected.remove(opt) : selected.add(opt);
             }),
             child: Padding(
@@ -627,7 +654,7 @@ class _HomePageState extends State<HomePage> {
                       value: selected.contains(opt),
                       activeColor: primaryOrange,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      onChanged: (checked) => setState(() {
+                      onChanged: (checked) => updateSelection(() {
                         checked == true
                             ? selected.add(opt)
                             : selected.remove(opt);

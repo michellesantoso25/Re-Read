@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:reread/components/book_description_page.dart';
+import 'package:reread/components/cart_feedback.dart';
 
 /// Format angka ke Rupiah, contoh: 85000 -> "Rp 85.000"
 String formatRupiah(dynamic price) {
@@ -143,7 +144,9 @@ class BookCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(6),
                     ),
                   ),
-                  onPressed: stock > 0 ? () {} : null,
+                  onPressed: stock > 0
+                      ? () => addBookToCart(context, book)
+                      : null,
                   child: Text(
                     'ADD TO CART',
                     style: GoogleFonts.inter(

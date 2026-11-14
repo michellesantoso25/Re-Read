@@ -7,6 +7,7 @@ import 'package:reread/pages/main_pages/login.dart';
 import 'package:reread/pages/main_pages/register.dart';
 import 'package:reread/pages/buyer_pages/home_page.dart';
 import 'package:reread/pages/buyer_pages/profile_page.dart';
+import 'package:reread/pages/buyer_pages/cart_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,6 +46,7 @@ class MyApp extends StatelessWidget {
         '/register': (context) => const RegisterPage(),
         '/home': (context) => const HomePage(),
         '/profile': (context) => const ProfilePage(),
+        '/cart': (context) => const CartPage(),
       },
     );
   }

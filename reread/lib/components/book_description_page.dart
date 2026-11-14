@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:reread/components/book_card.dart';
+import 'package:reread/components/cart_feedback.dart';
 import 'package:reread/components/footer.dart';
 import 'package:reread/components/topbar.dart';
 
@@ -170,8 +171,9 @@ class BookDescriptionPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    // TODO: sambungkan ke logika cart
-                    onPressed: stock > 0 ? () {} : null,
+                    onPressed: stock > 0
+                        ? () => addBookToCart(context, book)
+                        : null,
                     child: Text(
                       stock > 0 ? 'ADD TO CART' : 'SOLD OUT',
                       style: GoogleFonts.inter(
