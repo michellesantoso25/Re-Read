@@ -5,9 +5,15 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:reread/pages/main_pages/login.dart';
 import 'package:reread/pages/main_pages/register.dart';
+import 'package:reread/pages/main_pages/about_us_page.dart';
+import 'package:reread/pages/main_pages/faqs_page.dart';
+
 import 'package:reread/pages/buyer_pages/home_page.dart';
 import 'package:reread/pages/buyer_pages/profile_page.dart';
 import 'package:reread/pages/buyer_pages/cart_page.dart';
+import 'package:reread/pages/buyer_pages/categories_page.dart';
+import 'package:reread/pages/buyer_pages/new_arrivals_page.dart';
+import 'package:reread/pages/buyer_pages/sell_book_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,6 +53,12 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const HomePage(),
         '/profile': (context) => const ProfilePage(),
         '/cart': (context) => const CartPage(),
+        '/categories': (context) => const CategoriesPage(),
+        '/newArrivals': (context) => const NewArrivalsPage(),
+        '/sellBook': (context) => const SellBookPage(),
+        '/aboutUs': (context) => const AboutUsPage(),
+        '/faqs': (context) => const FaqsPage(),
+        
       },
     );
   }
