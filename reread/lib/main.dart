@@ -5,16 +5,23 @@ import 'package:reread/seller/pages/edit_profile_page.dart';
 import 'package:reread/seller/pages/messages_page.dart';
 import 'package:reread/seller/pages/notifications_page.dart';
 import 'package:reread/seller/pages/order_tracking_page.dart';
-import 'package:reread/seller/pages/profile_page.dart';
 import 'package:reread/seller/pages/sell_a_book_page.dart';
 import 'package:reread/seller/pages/seller_catalog_page.dart';
 import 'package:reread/seller/pages/seller_dashboard.dart';
 import 'package:reread/seller/pages/transaction_history_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'pages/login.dart';
-import 'pages/register.dart';
-import 'pages/home_page.dart'; 
+import 'package:reread/pages/main_pages/login.dart';
+import 'package:reread/pages/main_pages/register.dart';
+import 'package:reread/pages/main_pages/about_us_page.dart';
+import 'package:reread/pages/main_pages/faqs_page.dart';
+
+import 'package:reread/pages/buyer_pages/home_page.dart';
+import 'package:reread/pages/buyer_pages/profile_page.dart';
+import 'package:reread/pages/buyer_pages/cart_page.dart';
+import 'package:reread/pages/buyer_pages/categories_page.dart';
+import 'package:reread/pages/buyer_pages/new_arrivals_page.dart';
+import 'package:reread/pages/buyer_pages/sell_book_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,9 +52,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFFECE6DF),
         textTheme: GoogleFonts.interTextTheme(Theme.of(context).textTheme),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFE05627),
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFE05627)),
         useMaterial3: true,
       ),
 
@@ -57,7 +62,15 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
-        '/home': (context) => const HomePage(), // <-- Route aktif
+        '/home': (context) => const HomePage(),
+        '/profile': (context) => const ProfilePage(),
+        '/cart': (context) => const CartPage(),
+        '/categories': (context) => const CategoriesPage(),
+        '/newArrivals': (context) => const NewArrivalsPage(),
+        '/sellBook': (context) => const SellBookPage(),
+        '/aboutUs': (context) => const AboutUsPage(),
+        '/faqs': (context) => const FaqsPage(),
+        
       },
 
       // Bagian Seller 
