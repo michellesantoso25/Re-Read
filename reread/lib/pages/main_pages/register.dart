@@ -46,14 +46,12 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() => _isLoading = true);
 
     try {
-      // 1. Register ke Supabase
       final res = await supabase.auth.signUp(
         email: email,
         password: password,
         data: {'full_name': fullName, 'phone_number': phone},
       );
 
-      // 2. Jika session belum aktif otomatis, langsung paksa sign in
       if (res.session == null) {
         await supabase.auth.signInWithPassword(
           email: email,
@@ -69,7 +67,9 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
         );
 
-        Navigator.pushReplacementNamed(context, '/home');
+        // Jika datang dari tombol "Start now" di Sell a Book, langsung ke Seller Dashboard
+        final redirectRoute = ModalRoute.of(context)?.settings.arguments as String?;
+        Navigator.pushReplacementNamed(context, redirectRoute ?? '/home');
       }
     } catch (error) {
       if (mounted) {
@@ -437,9 +437,11 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                             GestureDetector(
                               onTap: () {
+                                final redirectRoute = ModalRoute.of(context)?.settings.arguments;
                                 Navigator.pushReplacementNamed(
                                   context,
                                   '/login',
+                                  arguments: redirectRoute,
                                 );
                               },
                               child: Text(

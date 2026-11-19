@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:reread/components/footer.dart';
 import 'package:reread/components/topbar.dart';
+import 'package:reread/main.dart';
 
 /// "Sell a Book" landing page: explains how selling works and leads to the seller dashboard.
 class SellBookPage extends StatelessWidget {
@@ -19,10 +20,20 @@ class SellBookPage extends StatelessWidget {
   static const _maxWidth = 1100.0;
 
   void _startNow(BuildContext context) {
-    // TODO: navigate to the seller dashboard once it exists.
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Seller dashboard is coming soon.')),
-    );
+    //login ke seller dashboard
+    final user = supabase.auth.currentUser;
+    
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please log in or register first to start selling.'),
+          backgroundColor: Color(0xFFF95200),
+        ),
+      );
+      Navigator.of(context).pushNamed('/login', arguments: '/seller_dashboard');
+    } else {
+      Navigator.of(context).pushNamed('/seller_dashboard');
+    }
   }
 
   void _openHelp(BuildContext context) {

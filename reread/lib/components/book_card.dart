@@ -6,7 +6,7 @@ import 'package:reread/components/cart_feedback.dart';
 
 /// Format angka ke Rupiah, contoh: 85000 -> "Rp 85.000"
 String formatRupiah(dynamic price) {
-  final value = (price ?? 0) as int;
+  final value = (price ?? 0) is int ? price as int : (price as num?)?.toInt() ?? 0;
   final digits = value.toString();
   final buffer = StringBuffer();
   for (var i = 0; i < digits.length; i++) {
@@ -33,7 +33,15 @@ Color conditionColor(String condition) {
 /// Kalau kartu ditekan, membuka BookDescriptionPage.
 class BookCard extends StatelessWidget {
   final Map<String, dynamic> book;
-  const BookCard({Key? key, required this.book}) : super(key: key);
+  final bool isSeller;
+  final VoidCallback? onEdit;
+
+  const BookCard({
+    Key? key,
+    required this.book,
+    this.isSeller = false,
+    this.onEdit,
+  }) : super(key: key);
 
   void _openDetail(BuildContext context) {
     Navigator.of(context).push(
@@ -132,7 +140,9 @@ class BookCard extends StatelessWidget {
                 height: 28,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE05627),
+                    backgroundColor: isSeller
+                        ? const Color(0xFFF95200)
+                        : const Color(0xFFE05627),
                     elevation: 0,
                     padding: EdgeInsets.zero,
                     // Font tombol disamakan dengan teks lain di kartu (Inter)
@@ -144,11 +154,11 @@ class BookCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(6),
                     ),
                   ),
-                  onPressed: stock > 0
-                      ? () => addBookToCart(context, book)
-                      : null,
+                  onPressed: isSeller
+                      ? onEdit
+                      : (stock > 0 ? () => addBookToCart(context, book) : null),
                   child: Text(
-                    'ADD TO CART',
+                    isSeller ? 'EDIT' : 'ADD TO CART',
                     style: GoogleFonts.inter(
                       fontSize: 10,
                       color: Colors.white,

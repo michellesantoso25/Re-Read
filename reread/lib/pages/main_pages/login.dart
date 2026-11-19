@@ -51,12 +51,12 @@ class _LoginPageState extends State<LoginPage> {
 
       if (!mounted) return;
 
-      // Pindah langsung ke Homepage
-      Navigator.pushReplacementNamed(context, '/home');
+      // Jika datang dari tombol "Start now" di Sell a Book, langsung ke Seller Dashboard
+      final redirectRoute = ModalRoute.of(context)?.settings.arguments as String?;
+      Navigator.pushReplacementNamed(context, redirectRoute ?? '/home');
     } on AuthException catch (error) {
       if (!mounted) return;
 
-      // Tangkap error spesifik Supabase dengan pesan yang manusiawi
       String errorMessage = error.message;
       if (error.message.contains('Invalid login credentials')) {
         errorMessage = 'Invalid email or password. Please try again.';
@@ -356,9 +356,11 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             GestureDetector(
                               onTap: () {
+                                final redirectRoute = ModalRoute.of(context)?.settings.arguments;
                                 Navigator.pushReplacementNamed(
                                   context,
                                   '/register',
+                                  arguments: redirectRoute,
                                 );
                               },
                               child: Text(
