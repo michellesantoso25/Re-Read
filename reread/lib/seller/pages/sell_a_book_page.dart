@@ -33,8 +33,8 @@ class _SellABookPageState extends State<SellABookPage> {
   String? _selectedFileName;
   bool _isSubmitting = false;
 
-  final Color primaryOrange = const Color(0xFFF95200);
-  final Color bgColor = const Color(0xFFF1EAE3);
+  final Color primaryOrange = const Color.fromRGBO(249, 82, 0, 1);
+  final Color bgColor = const Color(0xFFF0E5DD);
 
   @override
   void dispose() {

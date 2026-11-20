@@ -5,6 +5,7 @@ import 'package:reread/seller/pages/edit_profile_page.dart';
 import 'package:reread/seller/pages/messages_page.dart';
 import 'package:reread/seller/pages/notifications_page.dart';
 import 'package:reread/seller/pages/order_tracking_page.dart';
+import 'package:reread/seller/pages/profile_page.dart' as seller_profile;
 import 'package:reread/seller/pages/sell_a_book_page.dart';
 import 'package:reread/seller/pages/seller_catalog_page.dart';
 import 'package:reread/seller/pages/seller_dashboard.dart';
@@ -52,7 +53,9 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFFECE6DF),
         textTheme: GoogleFonts.interTextTheme(Theme.of(context).textTheme),
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFE05627)),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFFE05627),
+        ),
         useMaterial3: true,
       ),
 
@@ -70,7 +73,6 @@ class MyApp extends StatelessWidget {
         '/sellBook': (context) => const SellBookPage(),
         '/aboutUs': (context) => const AboutUsPage(),
         '/faqs': (context) => const FaqsPage(),
-        
       },
 
       // Bagian Seller 
@@ -94,7 +96,7 @@ class MyApp extends StatelessWidget {
             page = const NotificationsPage();
             break;
           case '/profile_page':
-            page = const ProfilePage();
+            page = seller_profile.ProfilePage();
             break;
           case '/edit_profile_page':
             page = EditProfilePage();

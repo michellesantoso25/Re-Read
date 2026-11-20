@@ -261,6 +261,14 @@ class CartPage extends StatelessWidget {
           const SizedBox(height: 20),
           SizedBox(
             height: 46,
+            // TODO (Supabase Checkout): Insert setiap item di cart.items ke tabel 'orders'
+            // Kolom:
+            // - 'book_id'   : book['id'] (int8 dari books.id)
+            // - 'buyer_id'  : Supabase.instance.client.auth.currentUser!.id (uuid)
+            // - 'seller_id' : book['seller_id'] (uuid dari books.seller_id)
+            // - 'price'     : book['price'] (numeric)
+            // - 'status'    : 'pending'
+            // Note: pastikan data buku yang masuk ke CartService menyertakan 'id' & 'seller_id' dari tabel 'books'.
             child: ElevatedButton(
               onPressed: hasItems
                   ? () => ScaffoldMessenger.of(context).showSnackBar(

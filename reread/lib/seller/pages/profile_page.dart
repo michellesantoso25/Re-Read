@@ -1,19 +1,246 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../component/top_bar.dart';
 
-class ProfilePage extends StatelessWidget {
+class _OrderHistoryItem {
+  final String order;
+  final String status;
+
+  const _OrderHistoryItem({
+    required this.order,
+    required this.status,
+  });
+}
+
+class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
 
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
   final Color bgColor = const Color(0xFFF1EAE3);
   final Color primaryOrange = const Color(0xFFFF5500);
+
+  final _supabase = Supabase.instance.client;
+
+  final _streetController = TextEditingController();
+  final _cityController = TextEditingController();
+  final _postalCodeController = TextEditingController();
+
+  bool _isLoading = true;
+  bool _isEditingAddress = false;
+  bool _isSavingAddress = false;
+
+  String _name = '';
+  String _email = '';
+  String _phone = '';
+  String? _avatarUrl;
+  String _ratingText = '4.9 - Trusted reader';
+  List<_OrderHistoryItem> _recentOrders = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchProfileData();
+  }
+
+  @override
+  void dispose() {
+    _streetController.dispose();
+    _cityController.dispose();
+    _postalCodeController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fetchProfileData() async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) {
+        if (mounted) setState(() => _isLoading = false);
+        return;
+      }
+
+      final meta = user.userMetadata ?? {};
+      dynamic profileRow;
+
+      try {
+        profileRow = await _supabase
+            .from('profiles')
+            .select()
+            .eq('id', user.id)
+            .maybeSingle();
+      } catch (_) {
+        try {
+          profileRow = await _supabase
+              .from('users')
+              .select()
+              .eq('id', user.id)
+              .maybeSingle();
+        } catch (_) {}
+      }
+
+      final historyList = <_OrderHistoryItem>[];
+      try {
+        final ordersRes = await _supabase
+            .from('orders')
+            .select('id, status')
+            .eq('seller_id', user.id)
+            .order('created_at', ascending: false)
+            .limit(3);
+
+        for (final o in List.from(ordersRes)) {
+          final rawId = (o['id'] ?? '').toString();
+          final shortId = rawId.length > 8
+              ? rawId.substring(0, 8).toUpperCase()
+              : rawId;
+          historyList.add(
+            _OrderHistoryItem(
+              order: 'Order #RR-$shortId',
+              status: _formatStatus((o['status'] ?? 'pending').toString()),
+            ),
+          );
+        }
+      } catch (_) {}
+
+      final resolvedName = (profileRow?['full_name'] ??
+              profileRow?['name'] ??
+              profileRow?['username'] ??
+              meta['full_name'] ??
+              meta['name'] ??
+              meta['username'] ??
+              user.email?.split('@').first ??
+              'Seller')
+          .toString();
+
+      final resolvedEmail =
+          (profileRow?['email'] ?? user.email ?? '-').toString();
+
+      final rawPhone = profileRow?['phone'] ??
+          profileRow?['phone_number'] ??
+          meta['phone'] ??
+          meta['phone_number'] ??
+          user.phone;
+      final resolvedPhone = (rawPhone != null && rawPhone.toString().isNotEmpty)
+          ? rawPhone.toString()
+          : 'No phone number added';
+
+      final resolvedAvatar =
+          (profileRow?['avatar_url'] ?? meta['avatar_url'])?.toString();
+
+      final ratingVal = profileRow?['rating']?.toString();
+      final resolvedRating = (ratingVal != null && ratingVal.isNotEmpty)
+          ? '$ratingVal - Trusted reader'
+          : '4.9 - Trusted reader';
+
+      _streetController.text = (profileRow?['street'] ??
+              profileRow?['address'] ??
+              meta['street'] ??
+              meta['address'] ??
+              '')
+          .toString();
+      _cityController.text =
+          (profileRow?['city'] ?? meta['city'] ?? '').toString();
+      _postalCodeController.text = (profileRow?['postal_code'] ??
+              profileRow?['zip_code'] ??
+              meta['postal_code'] ??
+              '')
+          .toString();
+
+      if (!mounted) return;
+      setState(() {
+        _name = resolvedName;
+        _email = resolvedEmail;
+        _phone = resolvedPhone;
+        _avatarUrl = resolvedAvatar;
+        _ratingText = resolvedRating;
+        _recentOrders = historyList;
+        _isLoading = false;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _saveAddress() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return;
+
+    setState(() => _isSavingAddress = true);
+
+    final street = _streetController.text.trim();
+    final city = _cityController.text.trim();
+    final postalCode = _postalCodeController.text.trim();
+
+    try {
+      await _supabase.auth.updateUser(
+        UserAttributes(
+          data: {
+            ...?user.userMetadata,
+            'street': street,
+            'city': city,
+            'postal_code': postalCode,
+          },
+        ),
+      );
+
+      try {
+        await _supabase.from('profiles').update({
+          'street': street,
+          'city': city,
+          'postal_code': postalCode,
+        }).eq('id', user.id);
+      } catch (_) {}
+
+      if (!mounted) return;
+      setState(() {
+        _isEditingAddress = false;
+        _isSavingAddress = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Address updated')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isSavingAddress = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update address: $e')),
+      );
+    }
+  }
+
+  Future<void> _handleSignOut() async {
+    await _supabase.auth.signOut();
+    if (!mounted) return;
+    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+  }
+
+  String _formatStatus(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'Pending';
+      case 'approved':
+      case 'to_ship':
+        return 'To ship';
+      case 'out_for_delivery':
+        return 'In transit';
+      case 'delivered':
+        return 'Delivered';
+      case 'rejected':
+        return 'Rejected';
+      default:
+        return status;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: bgColor,
-      appBar: const CustomTopBar(activePage: ''), 
+      appBar: const CustomTopBar(activePage: ''),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(40.0),
         child: Column(
@@ -49,17 +276,35 @@ class ProfilePage extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Profile Avatar Placeholder
+                  // Profile Avatar
                   Container(
                     width: 140,
                     height: 140,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFFAEDE8), 
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFAEDE8),
                       shape: BoxShape.circle,
+                      image: (_avatarUrl != null && _avatarUrl!.isNotEmpty)
+                          ? DecorationImage(
+                              image: NetworkImage(_avatarUrl!),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
                     ),
+                    child: (_avatarUrl == null || _avatarUrl!.isEmpty)
+                        ? Center(
+                            child: Text(
+                              _name.isNotEmpty ? _name[0].toUpperCase() : '',
+                              style: GoogleFonts.inter(
+                                fontSize: 44,
+                                fontWeight: FontWeight.bold,
+                                color: primaryOrange,
+                              ),
+                            ),
+                          )
+                        : null,
                   ),
                   const SizedBox(width: 32),
-                  
+
                   // Profile Details
                   Expanded(
                     child: Column(
@@ -67,27 +312,42 @@ class ProfilePage extends StatelessWidget {
                       children: [
                         const SizedBox(height: 8),
                         Text(
-                          'Maya Chen',
-                          style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.bold, color: const Color(0xFF2C2C2C)),
+                          _isLoading ? 'Loading...' : _name,
+                          style: GoogleFonts.inter(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF2C2C2C),
+                          ),
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'maya.chen@email.com',
-                          style: GoogleFonts.inter(fontSize: 14, color: const Color(0xFF555555)),
+                          _isLoading ? '...' : _email,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: const Color(0xFF555555),
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          '+1 415 555 0192',
-                          style: GoogleFonts.inter(fontSize: 14, color: const Color(0xFF555555)),
+                          _isLoading ? '...' : _phone,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: const Color(0xFF555555),
+                          ),
                         ),
                         const SizedBox(height: 12),
                         Row(
                           children: [
-                            const Icon(Icons.star, color: Color(0xFFFF5500), size: 16),
+                            const Icon(Icons.star,
+                                color: Color(0xFFFF5500), size: 16),
                             const SizedBox(width: 4),
                             Text(
-                              '4.9 - Trusted reader',
-                              style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFFFF5500)),
+                              _ratingText,
+                              style: GoogleFonts.inter(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFFFF5500),
+                              ),
                             ),
                           ],
                         ),
@@ -95,13 +355,25 @@ class ProfilePage extends StatelessWidget {
                         OutlinedButton(
                           style: OutlinedButton.styleFrom(
                             side: const BorderSide(color: Color(0xFFDDDDDD)),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
                           ),
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.pushReplacementNamed(
+                                context, '/seller_catalog_page');
+                          },
                           child: Text(
                             'View My catalog',
-                            style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF333333)),
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF333333),
+                            ),
                           ),
                         ),
                       ],
@@ -113,15 +385,25 @@ class ProfilePage extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryOrange,
                       elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
                     ),
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/edit_profile_page');
+                    onPressed: () async {
+                      await Navigator.pushNamed(context, '/edit_profile_page');
+                      _fetchProfileData();
                     },
                     child: Text(
                       'Edit Profile',
-                      style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ],
@@ -133,7 +415,7 @@ class ProfilePage extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                //My Address Form (Lebar Flex 2)
+                // My Address Form
                 Expanded(
                   flex: 7,
                   child: Container(
@@ -147,26 +429,66 @@ class ProfilePage extends StatelessWidget {
                       children: [
                         Text(
                           'My Address',
-                          style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: const Color(0xFF2C2C2C)),
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF2C2C2C),
+                          ),
                         ),
                         const SizedBox(height: 24),
-                        _buildTextField('Street', '1842 Paper Mill Lane'),
+                        _buildTextField(
+                          'Street',
+                          _streetController,
+                          hint: 'Enter street address',
+                          readOnly: !_isEditingAddress,
+                        ),
                         const SizedBox(height: 16),
-                        _buildTextField('City', 'Oakland'),
+                        _buildTextField(
+                          'City',
+                          _cityController,
+                          hint: 'Enter city',
+                          readOnly: !_isEditingAddress,
+                        ),
                         const SizedBox(height: 16),
-                        _buildTextField('Postal code', '94612'),
+                        _buildTextField(
+                          'Postal code',
+                          _postalCodeController,
+                          hint: 'Enter postal code',
+                          readOnly: !_isEditingAddress,
+                        ),
                         const SizedBox(height: 24),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: primaryOrange,
                             elevation: 0,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
+                            ),
                           ),
-                          onPressed: () {},
+                          onPressed: _isSavingAddress
+                              ? null
+                              : () {
+                                  if (_isEditingAddress) {
+                                    _saveAddress();
+                                  } else {
+                                    setState(() => _isEditingAddress = true);
+                                  }
+                                },
                           child: Text(
-                            'Edit Address',
-                            style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                            _isSavingAddress
+                                ? 'Saving...'
+                                : (_isEditingAddress
+                                    ? 'Save Address'
+                                    : 'Edit Address'),
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ],
@@ -175,7 +497,7 @@ class ProfilePage extends StatelessWidget {
                 ),
                 const SizedBox(width: 24),
 
-                //Transaction History & Account Actions (Lebar Flex 1)
+                // Transaction History & Account Actions
                 Expanded(
                   flex: 3,
                   child: Column(
@@ -193,31 +515,77 @@ class ProfilePage extends StatelessWidget {
                           children: [
                             Text(
                               'Transaction history',
-                              style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: const Color(0xFF2C2C2C)),
+                              style: GoogleFonts.inter(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF2C2C2C),
+                              ),
                             ),
                             const SizedBox(height: 16),
                             Text(
                               'Seller',
-                              style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: primaryOrange),
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: primaryOrange,
+                              ),
                             ),
                             const SizedBox(height: 12),
-                            _buildHistoryItem('Order #RR-2048', 'Delivered'),
-                            const SizedBox(height: 12),
-                            _buildHistoryItem('Order #RR-2019', 'In transit'),
-                            const SizedBox(height: 12),
-                            _buildHistoryItem('Sale #RR-1982', 'Completed'),
+                            if (_isLoading)
+                              Text(
+                                'Loading...',
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  color: const Color(0xFF555555),
+                                ),
+                              )
+                            else if (_recentOrders.isEmpty)
+                              Text(
+                                'No transactions yet',
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  color: const Color(0xFF555555),
+                                ),
+                              )
+                            else
+                              ...List.generate(_recentOrders.length, (index) {
+                                final item = _recentOrders[index];
+                                return Padding(
+                                  padding: EdgeInsets.only(
+                                    bottom: index == _recentOrders.length - 1
+                                        ? 0
+                                        : 12,
+                                  ),
+                                  child: _buildHistoryItem(
+                                    item.order,
+                                    item.status,
+                                  ),
+                                );
+                              }),
                             const SizedBox(height: 20),
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: primaryOrange,
                                 elevation: 0,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 12,
+                                ),
                               ),
-                              onPressed: () {},
+                              onPressed: () {
+                                Navigator.pushReplacementNamed(
+                                    context, '/transaction_history_page');
+                              },
                               child: Text(
                                 'View More',
-                                style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ],
@@ -225,20 +593,26 @@ class ProfilePage extends StatelessWidget {
                       ),
                       const SizedBox(height: 24),
 
-                      // Account Action Buttons (Logout & Switch Account)
+                      // Account Action Buttons
                       SizedBox(
                         width: double.infinity,
                         height: 48,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFE50000), 
+                            backgroundColor: const Color(0xFFE50000),
                             elevation: 0,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
                           ),
-                          onPressed: () {},
+                          onPressed: _handleSignOut,
                           child: Text(
                             'Logout',
-                            style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ),
@@ -250,12 +624,18 @@ class ProfilePage extends StatelessWidget {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white,
                             elevation: 0,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
                           ),
-                          onPressed: () {},
+                          onPressed: _handleSignOut,
                           child: Text(
                             'Switch Account',
-                            style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF2C2C2C)),
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF2C2C2C),
+                            ),
                           ),
                         ),
                       ),
@@ -270,23 +650,41 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField(String label, String value) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    String hint = '',
+    bool readOnly = true,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF333333)),
+          style: GoogleFonts.inter(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF333333),
+          ),
         ),
         const SizedBox(height: 6),
         SizedBox(
-          height: 40, 
+          height: 40,
           child: TextField(
-            controller: TextEditingController(text: value),
-            readOnly: true,
-            style: GoogleFonts.inter(fontSize: 13, color: const Color(0xFF555555)),
+            controller: controller,
+            readOnly: readOnly,
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              color: const Color(0xFF555555),
+            ),
             decoration: InputDecoration(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              hintText: hint,
+              hintStyle: GoogleFonts.inter(
+                fontSize: 12,
+                color: const Color(0xFFAAAAAA),
+              ),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(6),
                 borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
@@ -305,19 +703,32 @@ class ProfilePage extends StatelessWidget {
   Widget _buildHistoryItem(String order, String status) {
     return Row(
       children: [
-        Text(
-          order,
-          style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF555555)),
+        Flexible(
+          child: Text(
+            order,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              color: const Color(0xFF555555),
+            ),
+          ),
         ),
         const SizedBox(width: 4),
         Text(
           '·',
-          style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF555555)),
+          style: GoogleFonts.inter(
+            fontSize: 11,
+            color: const Color(0xFF555555),
+          ),
         ),
         const SizedBox(width: 4),
         Text(
           status,
-          style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF555555)),
+          style: GoogleFonts.inter(
+            fontSize: 11,
+            color: const Color(0xFF555555),
+          ),
         ),
       ],
     );

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:reread/main.dart';
 
-class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
+class CustomTopBar extends StatefulWidget implements PreferredSizeWidget {
   final String activePage;
 
   const CustomTopBar({
@@ -10,6 +10,14 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
     this.activePage = 'Dashboard',
   }) : super(key: key);
 
+  @override
+  Size get preferredSize => const Size.fromHeight(64);
+
+  @override
+  State<CustomTopBar> createState() => _CustomTopBarState();
+}
+
+class _CustomTopBarState extends State<CustomTopBar> {
   static const _primaryOrange = Color(0xFFF95200);
 
   static const Map<String, String> _navRoutes = {
@@ -26,8 +34,62 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
     'Transaction History': Icons.history_rounded,
   };
 
+  double _walletBalance = 0;
+  bool _isLoadingWallet = true;
+
   @override
-  Size get preferredSize => const Size.fromHeight(64);
+  void initState() {
+    super.initState();
+    _fetchWalletBalance();
+  }
+
+  Future<void> _fetchWalletBalance() async {
+    try {
+      final user = supabase.auth.currentUser;
+      if (user == null) {
+        if (mounted) setState(() => _isLoadingWallet = false);
+        return;
+      }
+
+      final ordersRes = await supabase
+          .from('orders')
+          .select('price, status')
+          .eq('seller_id', user.id);
+
+      double total = 0;
+      for (final row in List.from(ordersRes)) {
+        final status = (row['status'] ?? '').toString().toLowerCase();
+        if (status == 'rejected') continue;
+        final price = (row['price'] as num?)?.toDouble() ?? 0.0;
+        total += price;
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _walletBalance = total;
+        _isLoadingWallet = false;
+      });
+    } catch (_) {
+      if (mounted) {
+        setState(() => _isLoadingWallet = false);
+      }
+    }
+  }
+
+  String _formatWalletRupiah(double amount) {
+    final intVal = amount.round();
+    if (intVal <= 0) return 'Rp 0';
+    final digits = intVal.toString();
+    final buffer = StringBuffer();
+    for (int i = 0; i < digits.length; i++) {
+      final reverseIndex = digits.length - i;
+      buffer.write(digits[i]);
+      if (reverseIndex > 1 && reverseIndex % 3 == 1) {
+        buffer.write('.');
+      }
+    }
+    return 'Rp $buffer';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,8 +117,11 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
                   // Logo + Badge "for seller"
                   InkWell(
                     onTap: () {
-                      if (activePage != 'Dashboard') {
-                        Navigator.pushReplacementNamed(context, '/seller_dashboard');
+                      if (widget.activePage != 'Dashboard') {
+                        Navigator.pushReplacementNamed(
+                          context,
+                          '/seller_dashboard',
+                        );
                       }
                     },
                     child: Row(
@@ -88,57 +153,71 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
                     ),
                   ),
 
+                  // Navigation Menu (Ditengahkan)
                   if (!isPhone) ...[
-                    SizedBox(width: isTablet ? 20 : 40),
+                    const SizedBox(width: 16),
                     Expanded(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: _navRoutes.entries.map((entry) {
-                            return _navLink(
-                              context,
-                              entry.key,
-                              route: entry.value,
-                              isActive: activePage == entry.key,
-                              isTablet: isTablet,
-                            );
-                          }).toList(),
+                      child: Center(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: _navRoutes.entries.map((entry) {
+                              return _navLink(
+                                context,
+                                entry.key,
+                                route: entry.value,
+                                isActive: widget.activePage == entry.key,
+                                isTablet: isTablet,
+                              );
+                            }).toList(),
+                          ),
                         ),
                       ),
                     ),
+                    const SizedBox(width: 16),
                   ] else
                     const Spacer(),
 
-                  // Wallet Balance
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isPhone ? 10 : 14,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFE1D2).withOpacity(0.5),
+                  // Wallet Balance (Dinamis dari Supabase)
+                  Tooltip(
+                    message: 'Total buku terjual (klik untuk refresh)',
+                    child: InkWell(
+                      onTap: _fetchWalletBalance,
                       borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (!isPhone)
-                          Text(
-                            'Wallet ',
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              color: const Color(0xFF7A7A7A),
-                            ),
-                          ),
-                        Text(
-                          'Rp 48.200',
-                          style: GoogleFonts.inter(
-                            fontSize: isPhone ? 11 : 12,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF22201F),
-                          ),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isPhone ? 10 : 14,
+                          vertical: 6,
                         ),
-                      ],
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFE1D2).withOpacity(0.5),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (!isPhone)
+                              Text(
+                                'Wallet ',
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  color: const Color(0xFF7A7A7A),
+                                ),
+                              ),
+                            Text(
+                              _isLoadingWallet
+                                  ? '...'
+                                  : _formatWalletRupiah(_walletBalance),
+                              style: GoogleFonts.inter(
+                                fontSize: isPhone ? 11 : 12,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF22201F),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                   SizedBox(width: isPhone ? 6 : 12),
@@ -152,19 +231,22 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
                       color: Color(0xFF22201F),
                     ),
                     onPressed: () {
-                      if (activePage != 'Notifications') {
+                      if (widget.activePage != 'Notifications') {
                         Navigator.pushNamed(context, '/notifications_page');
                       }
                     },
                     padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
+                    constraints: const BoxConstraints(
+                      minWidth: 34,
+                      minHeight: 34,
+                    ),
                   ),
                   SizedBox(width: isPhone ? 6 : 10),
 
                   // Profile Avatar
                   InkWell(
                     onTap: () {
-                      if (activePage != 'Profile') {
+                      if (widget.activePage != 'Profile') {
                         Navigator.pushNamed(context, '/profile_page');
                       }
                     },
@@ -184,12 +266,12 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
                       ),
                       onSelected: (title) {
                         final route = _navRoutes[title];
-                        if (route != null && title != activePage) {
+                        if (route != null && title != widget.activePage) {
                           Navigator.pushReplacementNamed(context, route);
                         }
                       },
                       itemBuilder: (context) => _navRoutes.keys.map((title) {
-                        final selected = title == activePage;
+                        final selected = title == widget.activePage;
                         return PopupMenuItem<String>(
                           value: title,
                           child: Row(
@@ -208,7 +290,7 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
                                   fontSize: 13,
                                   fontWeight: selected
                                       ? FontWeight.w700
-                                      : FontWeight.w500,
+                                      : FontWeight.w600,
                                   color: selected
                                       ? _primaryOrange
                                       : const Color(0xFF302D2B),
@@ -265,7 +347,7 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
           title,
           style: GoogleFonts.inter(
             fontSize: isTablet ? 12.5 : 13.5,
-            fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+            fontWeight: isActive ? FontWeight.w700 : FontWeight.w600,
             color: isActive ? _primaryOrange : const Color(0xFF555555),
           ),
         ),
@@ -274,8 +356,8 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   Widget _profileAvatar({required double radius}) {
-    final avatarUrl = supabase.auth.currentUser?.userMetadata?['avatar_url']
-        ?.toString();
+    final avatarUrl =
+        supabase.auth.currentUser?.userMetadata?['avatar_url']?.toString();
     return CircleAvatar(
       radius: radius,
       backgroundColor: _primaryOrange,
