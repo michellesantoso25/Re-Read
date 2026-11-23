@@ -225,6 +225,14 @@ class _ProfilePageState extends State<ProfilePage> {
     Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
   }
 
+  void _changeRoleToBuyer() {
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      '/home',
+      (route) => false,
+    );
+  }
+
   String _formatStatus(String status) {
     switch (status.toLowerCase()) {
       case 'pending':
@@ -652,6 +660,30 @@ class _ProfilePageState extends State<ProfilePage> {
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                               color: const Color(0xFF2C2C2C),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryOrange,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                          ),
+                          onPressed: _changeRoleToBuyer,
+                          child: Text(
+                            'Change Role to Buyer',
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
                           ),
                         ),
