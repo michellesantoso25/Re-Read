@@ -1,30 +1,25 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:reread/main.dart';
+import 'package:reread/services/account_validation.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('marketplace account validation', () {
+    test('accepts valid email addresses and rejects malformed addresses', () {
+      expect(AccountValidation.validateEmail('reader@example.co.id'), isNull);
+      expect(AccountValidation.validateEmail('not-an-email'), isNotNull);
+    });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    test('requires a usable marketplace password', () {
+      expect(AccountValidation.validateNewPassword('BukuBagus123'), isNull);
+      expect(AccountValidation.validateNewPassword('short7'), isNotNull);
+      expect(AccountValidation.validateNewPassword('onlyletters'), isNotNull);
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    test('validates regular account name and Indonesian phone number', () {
+      expect(AccountValidation.validateFullName('Rina Kusuma'), isNull);
+      expect(AccountValidation.validateFullName('Li'), isNull);
+      expect(AccountValidation.validateFullName('R'), isNotNull);
+      expect(AccountValidation.validatePhone('+62 812-3456-7890'), isNull);
+      expect(AccountValidation.validatePhone('12345'), isNotNull);
+    });
   });
 }

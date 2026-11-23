@@ -94,11 +94,10 @@ class _FaqsPageState extends State<FaqsPage> {
       ),
       _Qa(
         'Where can I track my order?',
-        'Open Track Orders and select the purchase you want to check. '
-            'Review the latest order status and any tracking link provided '
-            'after dispatch. If there is no tracking update or the parcel '
-            'seems delayed, contact the seller or Help & Support with your '
-            'order reference.',
+        'Open your profile and review the purchase status in Transaction '
+            'History. Carrier tracking and seller shipment updates are not '
+            'available yet. Contact the seller or support for delivery '
+            'questions before relying on an arrival estimate.',
       ),
       _Qa(
         'Can I buy from different sellers or change my delivery address?',
@@ -187,7 +186,9 @@ class _FaqsPageState extends State<FaqsPage> {
     if (_query.isEmpty) return t.items;
     final q = _query.toLowerCase();
     return t.items
-        .where((e) => e.q.toLowerCase().contains(q) || e.a.toLowerCase().contains(q))
+        .where(
+          (e) => e.q.toLowerCase().contains(q) || e.a.toLowerCase().contains(q),
+        )
         .toList();
   }
 
@@ -212,9 +213,7 @@ class _FaqsPageState extends State<FaqsPage> {
   }
 
   void _trackOrders() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Track Orders is coming soon.')),
-    );
+    Navigator.pushNamed(context, '/profile');
   }
 
   // ----------------------------------------------------------------- build
@@ -246,8 +245,9 @@ class _FaqsPageState extends State<FaqsPage> {
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           InkWell(
-                            onTap: () => Navigator.of(context)
-                                .pushNamedAndRemoveUntil('/home', (r) => false),
+                            onTap: () => Navigator.of(
+                              context,
+                            ).pushNamedAndRemoveUntil('/home', (r) => false),
                             child: Text('Home', style: crumb),
                           ),
                           Text('  /  ', style: crumb),
@@ -447,7 +447,11 @@ class _FaqsPageState extends State<FaqsPage> {
           Text(
             'Keep your order reference handy when you contact us about a '
             'purchase.',
-            style: GoogleFonts.inter(fontSize: 9.5, height: 1.45, color: _muted),
+            style: GoogleFonts.inter(
+              fontSize: 9.5,
+              height: 1.45,
+              color: _muted,
+            ),
           ),
           const SizedBox(height: 8),
           InkWell(
@@ -464,7 +468,11 @@ class _FaqsPageState extends State<FaqsPage> {
                   ),
                 ),
                 const SizedBox(width: 4),
-                const Icon(Icons.arrow_forward_rounded, size: 11, color: _orange),
+                const Icon(
+                  Icons.arrow_forward_rounded,
+                  size: 11,
+                  color: _orange,
+                ),
               ],
             ),
           ),
@@ -590,7 +598,11 @@ class _FaqsPageState extends State<FaqsPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 for (var i = 0; i < items.length; i++)
-                  _qaRow('${t.id}:${items[i].q}', items[i], last: i == items.length - 1),
+                  _qaRow(
+                    '${t.id}:${items[i].q}',
+                    items[i],
+                    last: i == items.length - 1,
+                  ),
               ],
             ),
           ),
@@ -623,7 +635,11 @@ class _FaqsPageState extends State<FaqsPage> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Icon(expanded ? Icons.remove : Icons.add, size: 16, color: _muted),
+                Icon(
+                  expanded ? Icons.remove : Icons.add,
+                  size: 16,
+                  color: _muted,
+                ),
               ],
             ),
           ),
@@ -633,7 +649,11 @@ class _FaqsPageState extends State<FaqsPage> {
             padding: const EdgeInsets.fromLTRB(18, 0, 44, 16),
             child: Text(
               qa.a,
-              style: GoogleFonts.inter(fontSize: 10.5, height: 1.6, color: _muted),
+              style: GoogleFonts.inter(
+                fontSize: 10.5,
+                height: 1.6,
+                color: _muted,
+              ),
             ),
           ),
         if (!last) const Divider(height: 1, color: _line),
@@ -663,7 +683,11 @@ class _FaqsPageState extends State<FaqsPage> {
             Text(
               'Tell us what you need help with. For order questions, include '
               'your order reference so we can find the right details.',
-              style: GoogleFonts.inter(fontSize: 10, height: 1.45, color: _muted),
+              style: GoogleFonts.inter(
+                fontSize: 10,
+                height: 1.45,
+                color: _muted,
+              ),
             ),
           ],
         );
@@ -674,7 +698,9 @@ class _FaqsPageState extends State<FaqsPage> {
             foregroundColor: Colors.white,
             elevation: 0,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(6),
+            ),
           ),
           onPressed: _contact,
           child: Row(
@@ -682,7 +708,10 @@ class _FaqsPageState extends State<FaqsPage> {
             children: [
               Text(
                 'Contact Us',
-                style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.bold),
+                style: GoogleFonts.inter(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(width: 6),
               const Icon(Icons.arrow_forward_rounded, size: 12),
@@ -691,7 +720,10 @@ class _FaqsPageState extends State<FaqsPage> {
         );
 
         return Container(
-          padding: EdgeInsets.symmetric(horizontal: wide ? 24 : 18, vertical: 20),
+          padding: EdgeInsets.symmetric(
+            horizontal: wide ? 24 : 18,
+            vertical: 20,
+          ),
           decoration: BoxDecoration(
             color: _card,
             borderRadius: BorderRadius.circular(12),

@@ -29,6 +29,7 @@ class _ProfilePageState extends State<ProfilePage> {
   bool _pickerRegistered = false;
   String? _avatarUrl;
   String? _avatarPath;
+  late Future<List<Map<String, dynamic>>> _buyerOrders;
 
   User? get _user => supabase.auth.currentUser;
   Map<String, dynamic> get _metadata => _user?.userMetadata ?? {};
@@ -38,6 +39,7 @@ class _ProfilePageState extends State<ProfilePage> {
     super.initState();
     _loadMetadata();
     _loadProfileRecord();
+    _buyerOrders = _loadBuyerOrders();
   }
 
   void _loadMetadata() {
@@ -462,23 +464,18 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                             const SizedBox(height: 12),
                             OutlinedButton(
-                              onPressed: () =>
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Your catalog will be available soon.',
-                                      ),
-                                    ),
-                                  ),
+                              onPressed: () => Navigator.of(context).pushNamed(
+                                isSeller ? '/seller_catalog_page' : '/sellBook',
+                              ),
                               style: OutlinedButton.styleFrom(
                                 shape: const StadiumBorder(),
                                 side: const BorderSide(
                                   color: Color(0xFFE8D2C7),
                                 ),
                               ),
-                              child: const Text(
-                                'View my catalog',
-                                style: TextStyle(color: _ink),
+                              child: Text(
+                                isSeller ? 'View my catalog' : 'Start selling',
+                                style: const TextStyle(color: _ink),
                               ),
                             ),
                           ],
@@ -617,13 +614,37 @@ class _ProfilePageState extends State<ProfilePage> {
                 ? CrossAxisAlignment.center
                 : CrossAxisAlignment.start,
             children: [
-              Text(
-                'My Address',
-                textAlign: centered ? TextAlign.center : TextAlign.left,
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                ),
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 9,
+                runSpacing: 6,
+                children: [
+                  Text(
+                    'My Address',
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFE7DA),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      'Main Address',
+                      style: GoogleFonts.inter(
+                        color: _orange,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 14),
               _addressField('Street', _street),
@@ -668,6 +689,27 @@ class _ProfilePageState extends State<ProfilePage> {
     ),
   );
 
+  void _reloadBuyerOrders() {
+    setState(() {
+      _buyerOrders = _loadBuyerOrders();
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> _loadBuyerOrders() async {
+    final user = _user;
+    if (user == null) return [];
+    final rows = await supabase
+        .from('orders')
+        .select(
+          'id, status, payment_status, gross_amount, created_at, order_items(title, unit_price), order_shipments(courier, tracking_number, status)',
+        )
+        .eq('buyer_id', user.id)
+        .order('created_at', ascending: false);
+    return (rows as List)
+        .map((row) => Map<String, dynamic>.from(row as Map))
+        .toList();
+  }
+
   Widget _historyCard() => _card(
     Padding(
       padding: const EdgeInsets.all(20),
@@ -690,7 +732,6 @@ class _ProfilePageState extends State<ProfilePage> {
               const SizedBox(height: 12),
               Text(
                 'Buyer',
-                textAlign: centered ? TextAlign.center : TextAlign.left,
                 style: GoogleFonts.inter(
                   color: _orange,
                   fontWeight: FontWeight.w700,
@@ -698,16 +739,109 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
-                'No transactions yet.',
-                textAlign: centered ? TextAlign.center : TextAlign.left,
-                style: GoogleFonts.inter(fontSize: 12, color: Colors.black54),
-              ),
-              const SizedBox(height: 12),
-              OutlinedButton(
-                onPressed: null,
-                style: OutlinedButton.styleFrom(shape: const StadiumBorder()),
-                child: const Text('See more'),
+              FutureBuilder<List<Map<String, dynamic>>>(
+                future: _buyerOrders,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Padding(
+                      padding: EdgeInsets.all(12),
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                  if (snapshot.hasError) {
+                    return Column(
+                      crossAxisAlignment: centered
+                          ? CrossAxisAlignment.center
+                          : CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Transaction history could not be loaded: ${snapshot.error}',
+                          textAlign: centered
+                              ? TextAlign.center
+                              : TextAlign.left,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: Colors.black54,
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: _reloadBuyerOrders,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Try again'),
+                        ),
+                      ],
+                    );
+                  }
+                  final orders = snapshot.data ?? [];
+                  if (orders.isEmpty) {
+                    return Text(
+                      'No transactions yet.',
+                      textAlign: centered ? TextAlign.center : TextAlign.left,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: Colors.black54,
+                      ),
+                    );
+                  }
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: orders.take(3).map((order) {
+                      final items = (order['order_items'] as List? ?? []);
+                      final firstTitle = items.isEmpty
+                          ? 'Order'
+                          : (items.first['title'] ?? 'Book').toString();
+                      final extra = items.length > 1
+                          ? ' + ${items.length - 1} more'
+                          : '';
+                      final status =
+                          (order['payment_status'] ??
+                                  order['status'] ??
+                                  'pending')
+                              .toString();
+                      final amount =
+                          (order['gross_amount'] as num?)?.round() ?? 0;
+                      final formattedAmount =
+                          'Rp ${amount.toString().replaceAllMapped(RegExp(r'\\B(?=(\\d{3})+(?!\\d))'), (_) => '.')}';
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '$firstTitle$extra',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              '$formattedAmount · ${status.toUpperCase()}',
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                color: Colors.black54,
+                              ),
+                            ),
+                            for (final rawShipment
+                                in (order['order_shipments'] as List? ?? []))
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  '${rawShipment['courier']} · Resi ${rawShipment['tracking_number']} · ${rawShipment['status']}',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    color: _orange,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  );
+                },
               ),
             ],
           );

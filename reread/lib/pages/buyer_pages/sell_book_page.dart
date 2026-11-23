@@ -22,7 +22,7 @@ class SellBookPage extends StatelessWidget {
   void _startNow(BuildContext context) {
     //login ke seller dashboard
     final user = supabase.auth.currentUser;
-    
+
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -37,9 +37,7 @@ class SellBookPage extends StatelessWidget {
   }
 
   void _openHelp(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Help & Support is coming soon.')),
-    );
+    Navigator.of(context).pushNamed('/faqs');
   }
 
   @override
@@ -56,7 +54,10 @@ class SellBookPage extends StatelessWidget {
               child: _section(vertical: 36, child: _hero(context)),
             ),
             _section(child: _steps()),
-            Container(color: _beige, child: _section(vertical: 36, child: _dashboard())),
+            Container(
+              color: _beige,
+              child: _section(vertical: 36, child: _dashboard()),
+            ),
             _section(child: _faq(context)),
             const CustomFooter(),
           ],
@@ -115,14 +116,14 @@ class SellBookPage extends StatelessWidget {
   }
 
   Widget _eyebrow(String text) => Text(
-        text,
-        style: GoogleFonts.inter(
-          fontSize: 9,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1.1,
-          color: _orange,
-        ),
-      );
+    text,
+    style: GoogleFonts.inter(
+      fontSize: 9,
+      fontWeight: FontWeight.w700,
+      letterSpacing: 1.1,
+      color: _orange,
+    ),
+  );
 
   Widget _startButton(BuildContext context) {
     return ElevatedButton(
@@ -185,7 +186,10 @@ class SellBookPage extends StatelessWidget {
                   ),
                   children: const [
                     TextSpan(text: 'Your bookshelf.\nTheir next '),
-                    TextSpan(text: 'chapter.', style: TextStyle(color: _orange)),
+                    TextSpan(
+                      text: 'chapter.',
+                      style: TextStyle(color: _orange),
+                    ),
                   ],
                 ),
               ),
@@ -194,7 +198,11 @@ class SellBookPage extends StatelessWidget {
                 'Make room for new stories by passing on the ones you\'ve '
                 'loved. Turn your pre-loved books into someone else\'s next '
                 'great read.',
-                style: GoogleFonts.inter(fontSize: 12, height: 1.5, color: _muted),
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  height: 1.5,
+                  color: _muted,
+                ),
               ),
               const SizedBox(height: 18),
               _startButton(context),
@@ -272,12 +280,19 @@ class SellBookPage extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.bold),
+                style: GoogleFonts.inter(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 3),
               Text(
                 body,
-                style: GoogleFonts.inter(fontSize: 10, height: 1.4, color: _muted),
+                style: GoogleFonts.inter(
+                  fontSize: 10,
+                  height: 1.4,
+                  color: _muted,
+                ),
               ),
             ],
           ),
@@ -288,17 +303,17 @@ class SellBookPage extends StatelessWidget {
 
   Widget _heroPhoto() {
     Widget placeholder() => Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFFF3E3D6), Color(0xFFD9B99B)],
-            ),
-          ),
-          child: const Center(
-            child: Icon(Icons.auto_stories, size: 56, color: Colors.white70),
-          ),
-        );
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFF3E3D6), Color(0xFFD9B99B)],
+        ),
+      ),
+      child: const Center(
+        child: Icon(Icons.auto_stories, size: 56, color: Colors.white70),
+      ),
+    );
 
     return Image.asset(
       'lib/assets/sell_hero.jpg',
@@ -313,10 +328,7 @@ class SellBookPage extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: _heroPhoto(),
-        ),
+        ClipRRect(borderRadius: BorderRadius.circular(12), child: _heroPhoto()),
         Positioned(
           left: 16,
           bottom: 16,
@@ -326,7 +338,11 @@ class SellBookPage extends StatelessWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(8),
               boxShadow: const [
-                BoxShadow(color: Color(0x22000000), blurRadius: 10, offset: Offset(0, 3)),
+                BoxShadow(
+                  color: Color(0x22000000),
+                  blurRadius: 10,
+                  offset: Offset(0, 3),
+                ),
               ],
             ),
             child: Row(
@@ -336,18 +352,21 @@ class SellBookPage extends StatelessWidget {
                 const SizedBox(width: 8),
                 Flexible(
                   child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Good books deserve another reader.',
-                      style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      'Pre-loved books, new adventures.',
-                      style: GoogleFonts.inter(fontSize: 8.5, color: _muted),
-                    ),
-                  ],
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Good books deserve another reader.',
+                        style: GoogleFonts.inter(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'Pre-loved books, new adventures.',
+                        style: GoogleFonts.inter(fontSize: 8.5, color: _muted),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -372,7 +391,11 @@ class SellBookPage extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               'A new chapter in three steps',
-              style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold, color: _ink),
+              style: GoogleFonts.inter(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: _ink,
+              ),
             ),
           ],
         );
@@ -403,26 +426,23 @@ class SellBookPage extends StatelessWidget {
               note,
             ],
             const SizedBox(height: 16),
-            _grid(
-              [
-                _stepCard(
-                  '01',
-                  'Create your listing',
-                  'Add photos, the title and author, and an honest description of the book\'s condition.',
-                ),
-                _stepCard(
-                  '02',
-                  'Set your price & publish',
-                  'Choose an asking price and put your book in front of readers browsing Re:Read.',
-                ),
-                _stepCard(
-                  '03',
-                  'Send it to its next reader',
-                  'Follow the order details in your dashboard, pack your book with care and arrange delivery.',
-                ),
-              ],
-              wide: wide,
-            ),
+            _grid([
+              _stepCard(
+                '01',
+                'Create your listing',
+                'Add photos, the title and author, and an honest description of the book\'s condition.',
+              ),
+              _stepCard(
+                '02',
+                'Set your price & publish',
+                'Choose an asking price and put your book in front of readers browsing Re:Read.',
+              ),
+              _stepCard(
+                '03',
+                'Send it to its next reader',
+                'Follow the order details in your dashboard, pack your book with care and arrange delivery.',
+              ),
+            ], wide: wide),
           ],
         );
       },
@@ -442,17 +462,29 @@ class SellBookPage extends StatelessWidget {
         children: [
           Text(
             number,
-            style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w800, color: _orange),
+            style: GoogleFonts.inter(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: _orange,
+            ),
           ),
           const SizedBox(height: 10),
           Text(
             title,
-            style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: _ink),
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: _ink,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
             body,
-            style: GoogleFonts.inter(fontSize: 10.5, height: 1.45, color: _muted),
+            style: GoogleFonts.inter(
+              fontSize: 10.5,
+              height: 1.45,
+              color: _muted,
+            ),
           ),
         ],
       ),
@@ -532,12 +564,20 @@ class SellBookPage extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.bold, color: _ink),
+                style: GoogleFonts.inter(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.bold,
+                  color: _ink,
+                ),
               ),
               const SizedBox(height: 2),
               Text(
                 body,
-                style: GoogleFonts.inter(fontSize: 10.5, height: 1.4, color: _muted),
+                style: GoogleFonts.inter(
+                  fontSize: 10.5,
+                  height: 1.4,
+                  color: _muted,
+                ),
               ),
             ],
           ),
@@ -583,7 +623,11 @@ class SellBookPage extends StatelessWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               boxShadow: const [
-                BoxShadow(color: Color(0x14000000), blurRadius: 12, offset: Offset(0, 4)),
+                BoxShadow(
+                  color: Color(0x14000000),
+                  blurRadius: 12,
+                  offset: Offset(0, 4),
+                ),
               ],
             ),
             child: Column(
@@ -594,10 +638,18 @@ class SellBookPage extends StatelessWidget {
                     Expanded(
                       child: Text(
                         'Your bookshelf, organised.',
-                        style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold, color: _ink),
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: _ink,
+                        ),
                       ),
                     ),
-                    const Icon(Icons.menu_book_outlined, size: 16, color: _orange),
+                    const Icon(
+                      Icons.menu_book_outlined,
+                      size: 16,
+                      color: _orange,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -611,7 +663,11 @@ class SellBookPage extends StatelessWidget {
                   ],
                 ),
                 const Divider(height: 14, color: _line),
-                _listing('The Midnight Library', 'Very good · Rp 95.000', 'Active'),
+                _listing(
+                  'The Midnight Library',
+                  'Very good · Rp 95.000',
+                  'Active',
+                ),
                 const SizedBox(height: 8),
                 _listing('The Vanishing Half', 'Like new · Rp 88.000', 'Draft'),
                 const Divider(height: 20, color: _line),
@@ -640,7 +696,10 @@ class SellBookPage extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 3),
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: active ? _orange : Colors.transparent, width: 1.5),
+          bottom: BorderSide(
+            color: active ? _orange : Colors.transparent,
+            width: 1.5,
+          ),
         ),
       ),
       child: Text(
@@ -674,12 +733,13 @@ class SellBookPage extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.bold, color: _ink),
+                style: GoogleFonts.inter(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.bold,
+                  color: _ink,
+                ),
               ),
-              Text(
-                meta,
-                style: GoogleFonts.inter(fontSize: 9, color: _muted),
-              ),
+              Text(meta, style: GoogleFonts.inter(fontSize: 9, color: _muted)),
             ],
           ),
         ),
@@ -717,7 +777,11 @@ class SellBookPage extends StatelessWidget {
                 Expanded(
                   child: Text(
                     'A few things before you begin',
-                    style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: _ink),
+                    style: GoogleFonts.inter(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: _ink,
+                    ),
                   ),
                 ),
                 InkWell(
@@ -736,7 +800,11 @@ class SellBookPage extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 4),
-                        const Icon(Icons.arrow_forward_rounded, size: 11, color: _orange),
+                        const Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 11,
+                          color: _orange,
+                        ),
                       ],
                     ),
                   ),
@@ -776,7 +844,11 @@ class SellBookPage extends StatelessWidget {
       children: [
         Text(
           question,
-          style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.bold, color: _ink),
+          style: GoogleFonts.inter(
+            fontSize: 11.5,
+            fontWeight: FontWeight.bold,
+            color: _ink,
+          ),
         ),
         const SizedBox(height: 4),
         Text(
@@ -793,7 +865,11 @@ class SellBookPage extends StatelessWidget {
       children: [
         Text(
           'That book you loved? Pass it on.',
-          style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: _ink),
+          style: GoogleFonts.inter(
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
+            color: _ink,
+          ),
         ),
         const SizedBox(height: 3),
         Text(

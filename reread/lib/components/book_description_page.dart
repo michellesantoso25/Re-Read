@@ -1,5 +1,3 @@
-import 'dart:ui' show ImageFilter;
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -7,6 +5,7 @@ import 'package:reread/components/book_card.dart';
 import 'package:reread/components/cart_feedback.dart';
 import 'package:reread/components/footer.dart';
 import 'package:reread/components/topbar.dart';
+import 'package:reread/services/seller_repository.dart';
 
 /// Halaman detail buku. Dibuka ketika BookCard ditekan.
 class BookDescriptionPage extends StatelessWidget {
@@ -37,7 +36,8 @@ class BookDescriptionPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.sizeOf(context).width < 700;
+    final pageWidth = MediaQuery.sizeOf(context).width;
+    final isWide = pageWidth >= 860;
     return Scaffold(
       backgroundColor: const Color(0xFFECE6DF),
       appBar: const CustomTopBar(activeNav: 'Categories'),
@@ -46,13 +46,13 @@ class BookDescriptionPage extends StatelessWidget {
           children: [
             Padding(
               padding: EdgeInsets.symmetric(
-                horizontal: isMobile ? 16 : 40,
-                vertical: isMobile ? 18 : 28,
+                horizontal: pageWidth < 520 ? 12 : (isWide ? 32 : 20),
+                vertical: isWide ? 32 : 18,
               ),
               child: Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 680),
-                  child: _buildCard(context),
+                  constraints: const BoxConstraints(maxWidth: 1100),
+                  child: _buildCard(context, isWide: isWide),
                 ),
               ),
             ),
@@ -63,51 +63,75 @@ class BookDescriptionPage extends StatelessWidget {
     );
   }
 
-  Widget _buildCard(BuildContext context) {
-    final cover = book['cover'] as String?;
-    final stock = (book['stock'] ?? 0) as int;
+  Widget _buildCard(BuildContext context, {required bool isWide}) {
+    final cover = book['cover']?.toString();
+    final stock = (book['stock'] as num?)?.toInt() ?? 0;
     final condition = _str(book['condition'], 'Good');
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: EdgeInsets.all(isWide ? 24 : 14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
       ),
-      child: Column(
+      child: isWide
+          ? Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(flex: 5, child: _banner(cover)),
+                const SizedBox(width: 28),
+                Expanded(
+                  flex: 6,
+                  child: _buildDetails(context, stock, condition),
+                ),
+              ],
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _banner(cover),
+                const SizedBox(height: 16),
+                _buildDetails(context, stock, condition),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildDetails(BuildContext context, int stock, String condition) =>
+      Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _banner(cover),
-          const SizedBox(height: 12),
           Text(
             _str(book['title']),
             style: GoogleFonts.inter(
-              fontSize: 18,
+              fontSize: 22,
               fontWeight: FontWeight.bold,
               color: const Color(0xFF302D2B),
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 3),
           Text(
             _str(book['author']),
-            style: GoogleFonts.inter(fontSize: 12, color: Colors.grey),
+            style: GoogleFonts.inter(fontSize: 14, color: Colors.grey),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
+          _sellerCard(),
+          const SizedBox(height: 18),
           Text(
             'Synopsis',
-            style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold),
+            style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 5),
           Text(
             _str(book['synopsis'], 'No Synopsis available.'),
-            style: GoogleFonts.inter(fontSize: 12, height: 1.35),
+            style: GoogleFonts.inter(fontSize: 13, height: 1.5),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
           Text(
             'Book Information',
-            style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold),
+            style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           _buildInfo(),
           const SizedBox(height: 14),
           Row(
@@ -116,28 +140,31 @@ class BookDescriptionPage extends StatelessWidget {
                 child: Text(
                   formatRupiah(book['price']),
                   style: GoogleFonts.inter(
-                    fontSize: 16,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: const Color(0xFF302D2B),
                   ),
                 ),
               ),
-              Text(
-                condition,
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: conditionColor(condition),
+              Flexible(
+                child: Text(
+                  condition,
+                  textAlign: TextAlign.end,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: conditionColor(condition),
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
                 child: SizedBox(
-                  height: 36,
+                  height: 42,
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.black,
@@ -158,10 +185,10 @@ class BookDescriptionPage extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: SizedBox(
-                  height: 36,
+                  height: 42,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _orange,
@@ -188,7 +215,68 @@ class BookDescriptionPage extends StatelessWidget {
             ],
           ),
         ],
-      ),
+      );
+
+  Widget _sellerCard() {
+    final sellerId = book['seller_id']?.toString().trim() ?? '';
+    if (sellerId.isEmpty) return const SizedBox.shrink();
+
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: SellerRepository.forBook(book),
+      builder: (context, snapshot) {
+        final seller = snapshot.data;
+        final name = SellerRepository.displayName(book, profile: seller);
+        final avatarUrl = seller?['avatar_url']?.toString();
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFF7F1),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: const Color(0xFFF0E3DA)),
+          ),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: const Color(0xFFE9E2DC),
+                backgroundImage: avatarUrl != null && avatarUrl.isNotEmpty
+                    ? NetworkImage(avatarUrl)
+                    : null,
+                child: avatarUrl == null || avatarUrl.isEmpty
+                    ? const Icon(Icons.person_outline, color: _orange, size: 20)
+                    : null,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Sold by',
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        color: Colors.black54,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      snapshot.connectionState == ConnectionState.waiting
+                          ? 'Loading seller…'
+                          : name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -282,37 +370,21 @@ class BookDescriptionPage extends StatelessWidget {
     );
   }
 
-  /// Banner cover: cover di tengah, sisi kiri-kanan diisi versi blur cover itu.
+  /// Keep the cover in its natural portrait ratio instead of cropping it into
+  /// a wide banner. BoxFit.contain preserves the original image proportions.
   Widget _banner(String? cover) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
-      child: SizedBox(
-        height: 150,
-        width: double.infinity,
-        child: (cover == null || cover.isEmpty)
-            ? Container(
-                color: Colors.grey.shade300,
-                child: const Center(
-                  child: Icon(Icons.book, size: 40, color: Colors.white),
-                ),
-              )
-            : Stack(
-                fit: StackFit.expand,
-                children: [
-                  ImageFiltered(
-                    imageFilter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-                    child: _image(cover, BoxFit.cover, Alignment.center),
-                  ),
-                  Container(color: Colors.black26),
-                  Center(
-                    child: FractionallySizedBox(
-                      widthFactor: 0.58,
-                      heightFactor: 1,
-                      child: _image(cover, BoxFit.cover, Alignment.topCenter),
-                    ),
-                  ),
-                ],
-              ),
+      child: AspectRatio(
+        aspectRatio: 0.72,
+        child: Container(
+          color: const Color(0xFFF7F3EF),
+          padding: const EdgeInsets.all(12),
+          alignment: Alignment.center,
+          child: (cover == null || cover.isEmpty)
+              ? Icon(Icons.book, size: 48, color: Colors.grey.shade400)
+              : _image(cover, BoxFit.contain, Alignment.center),
+        ),
       ),
     );
   }

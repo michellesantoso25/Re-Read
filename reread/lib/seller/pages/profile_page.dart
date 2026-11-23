@@ -36,10 +36,11 @@ class _ProfilePageState extends State<ProfilePage> {
   bool _isSavingAddress = false;
 
   String _name = '';
+  String _shopName = '';
   String _email = '';
   String _phone = '';
   String? _avatarUrl;
-  String _ratingText = '4.9 - Trusted reader';
+  String _ratingText = 'Belum ada ulasan';
   List<_OrderHistoryItem> _recentOrders = [];
 
   @override
@@ -134,7 +135,12 @@ class _ProfilePageState extends State<ProfilePage> {
       final ratingVal = profileRow?['rating']?.toString();
       final resolvedRating = (ratingVal != null && ratingVal.isNotEmpty)
           ? '$ratingVal - Trusted reader'
-          : '4.9 - Trusted reader';
+          : 'Belum ada ulasan';
+      final resolvedShopName = (profileRow?['shop_name'] ??
+              meta['shop_name'] ??
+              '')
+          .toString()
+          .trim();
 
       _streetController.text = (profileRow?['street'] ??
               profileRow?['address'] ??
@@ -153,6 +159,7 @@ class _ProfilePageState extends State<ProfilePage> {
       if (!mounted) return;
       setState(() {
         _name = resolvedName;
+        _shopName = resolvedShopName;
         _email = resolvedEmail;
         _phone = resolvedPhone;
         _avatarUrl = resolvedAvatar;
@@ -319,6 +326,16 @@ class _ProfilePageState extends State<ProfilePage> {
                             color: const Color(0xFF2C2C2C),
                           ),
                         ),
+                        if (_shopName.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            _shopName,
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              color: const Color(0xFF77716D),
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 12),
                         Text(
                           _isLoading ? '...' : _email,

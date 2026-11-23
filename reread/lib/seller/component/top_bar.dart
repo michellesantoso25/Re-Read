@@ -2,22 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:reread/main.dart';
 
-class CustomTopBar extends StatefulWidget implements PreferredSizeWidget {
+class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
   final String activePage;
 
-  const CustomTopBar({
-    Key? key,
-    this.activePage = 'Dashboard',
-  }) : super(key: key);
+  const CustomTopBar({Key? key, this.activePage = 'Dashboard'})
+    : super(key: key);
 
-  @override
-  Size get preferredSize => const Size.fromHeight(64);
-
-  @override
-  State<CustomTopBar> createState() => _CustomTopBarState();
-}
-
-class _CustomTopBarState extends State<CustomTopBar> {
   static const _primaryOrange = Color(0xFFF95200);
 
   static const Map<String, String> _navRoutes = {
@@ -34,62 +24,8 @@ class _CustomTopBarState extends State<CustomTopBar> {
     'Transaction History': Icons.history_rounded,
   };
 
-  double _walletBalance = 0;
-  bool _isLoadingWallet = true;
-
   @override
-  void initState() {
-    super.initState();
-    _fetchWalletBalance();
-  }
-
-  Future<void> _fetchWalletBalance() async {
-    try {
-      final user = supabase.auth.currentUser;
-      if (user == null) {
-        if (mounted) setState(() => _isLoadingWallet = false);
-        return;
-      }
-
-      final ordersRes = await supabase
-          .from('orders')
-          .select('price, status')
-          .eq('seller_id', user.id);
-
-      double total = 0;
-      for (final row in List.from(ordersRes)) {
-        final status = (row['status'] ?? '').toString().toLowerCase();
-        if (status == 'rejected') continue;
-        final price = (row['price'] as num?)?.toDouble() ?? 0.0;
-        total += price;
-      }
-
-      if (!mounted) return;
-      setState(() {
-        _walletBalance = total;
-        _isLoadingWallet = false;
-      });
-    } catch (_) {
-      if (mounted) {
-        setState(() => _isLoadingWallet = false);
-      }
-    }
-  }
-
-  String _formatWalletRupiah(double amount) {
-    final intVal = amount.round();
-    if (intVal <= 0) return 'Rp 0';
-    final digits = intVal.toString();
-    final buffer = StringBuffer();
-    for (int i = 0; i < digits.length; i++) {
-      final reverseIndex = digits.length - i;
-      buffer.write(digits[i]);
-      if (reverseIndex > 1 && reverseIndex % 3 == 1) {
-        buffer.write('.');
-      }
-    }
-    return 'Rp $buffer';
-  }
+  Size get preferredSize => const Size.fromHeight(64);
 
   @override
   Widget build(BuildContext context) {
@@ -117,7 +53,7 @@ class _CustomTopBarState extends State<CustomTopBar> {
                   // Logo + Badge "for seller"
                   InkWell(
                     onTap: () {
-                      if (widget.activePage != 'Dashboard') {
+                      if (activePage != 'Dashboard') {
                         Navigator.pushReplacementNamed(
                           context,
                           '/seller_dashboard',
@@ -153,100 +89,72 @@ class _CustomTopBarState extends State<CustomTopBar> {
                     ),
                   ),
 
-                  // Navigation Menu (Ditengahkan)
                   if (!isPhone) ...[
-                    const SizedBox(width: 16),
+                    SizedBox(width: isTablet ? 20 : 40),
                     Expanded(
-                      child: Center(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: _navRoutes.entries.map((entry) {
-                              return _navLink(
-                                context,
-                                entry.key,
-                                route: entry.value,
-                                isActive: widget.activePage == entry.key,
-                                isTablet: isTablet,
-                              );
-                            }).toList(),
-                          ),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: _navRoutes.entries.map((entry) {
+                            return _navLink(
+                              context,
+                              entry.key,
+                              route: entry.value,
+                              isActive: activePage == entry.key,
+                              isTablet: isTablet,
+                            );
+                          }).toList(),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 16),
                   ] else
                     const Spacer(),
 
-                  // Wallet Balance (Dinamis dari Supabase)
-                  Tooltip(
-                    message: 'Total buku terjual (klik untuk refresh)',
-                    child: InkWell(
-                      onTap: _fetchWalletBalance,
+                  // Wallet Balance
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isPhone ? 10 : 14,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFE1D2).withOpacity(0.5),
                       borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: isPhone ? 10 : 14,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFE1D2).withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (!isPhone)
-                              Text(
-                                'Wallet ',
-                                style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  color: const Color(0xFF7A7A7A),
-                                ),
-                              ),
-                            Text(
-                              _isLoadingWallet
-                                  ? '...'
-                                  : _formatWalletRupiah(_walletBalance),
-                              style: GoogleFonts.inter(
-                                fontSize: isPhone ? 11 : 12,
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFF22201F),
-                              ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (!isPhone)
+                          Text(
+                            'Wallet ',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: const Color(0xFF7A7A7A),
                             ),
-                          ],
+                          ),
+                        FutureBuilder<int>(
+                          future: _loadWalletBalance(),
+                          builder: (context, snapshot) => Text(
+                            snapshot.hasError
+                                ? 'Cek DB'
+                                : snapshot.hasData
+                                ? _formatRupiah(snapshot.data!)
+                                : '…',
+                            style: GoogleFonts.inter(
+                              fontSize: isPhone ? 11 : 12,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF22201F),
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
                   SizedBox(width: isPhone ? 6 : 12),
 
-                  // Notification Icon
-                  IconButton(
-                    tooltip: 'Notifications',
-                    icon: const Icon(
-                      Icons.notifications_none_rounded,
-                      size: 22,
-                      color: Color(0xFF22201F),
-                    ),
-                    onPressed: () {
-                      if (widget.activePage != 'Notifications') {
-                        Navigator.pushNamed(context, '/notifications_page');
-                      }
-                    },
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(
-                      minWidth: 34,
-                      minHeight: 34,
-                    ),
-                  ),
-                  SizedBox(width: isPhone ? 6 : 10),
-
                   // Profile Avatar
                   InkWell(
                     onTap: () {
-                      if (widget.activePage != 'Profile') {
+                      if (activePage != 'Profile') {
                         Navigator.pushNamed(context, '/profile_page');
                       }
                     },
@@ -266,12 +174,12 @@ class _CustomTopBarState extends State<CustomTopBar> {
                       ),
                       onSelected: (title) {
                         final route = _navRoutes[title];
-                        if (route != null && title != widget.activePage) {
+                        if (route != null && title != activePage) {
                           Navigator.pushReplacementNamed(context, route);
                         }
                       },
                       itemBuilder: (context) => _navRoutes.keys.map((title) {
-                        final selected = title == widget.activePage;
+                        final selected = title == activePage;
                         return PopupMenuItem<String>(
                           value: title,
                           child: Row(
@@ -290,7 +198,7 @@ class _CustomTopBarState extends State<CustomTopBar> {
                                   fontSize: 13,
                                   fontWeight: selected
                                       ? FontWeight.w700
-                                      : FontWeight.w600,
+                                      : FontWeight.w500,
                                   color: selected
                                       ? _primaryOrange
                                       : const Color(0xFF302D2B),
@@ -324,6 +232,22 @@ class _CustomTopBarState extends State<CustomTopBar> {
     );
   }
 
+  Future<int> _loadWalletBalance() async {
+    final user = supabase.auth.currentUser;
+    if (user == null) return 0;
+    final rows = await supabase
+        .from('seller_wallet_ledger')
+        .select('amount')
+        .eq('seller_id', user.id);
+    return (rows as List).fold<int>(
+      0,
+      (total, row) => total + ((row['amount'] as num?)?.round() ?? 0),
+    );
+  }
+
+  String _formatRupiah(int amount) =>
+      'Rp ${amount.toString().replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => '.')}';
+
   Widget _navLink(
     BuildContext context,
     String title, {
@@ -347,7 +271,7 @@ class _CustomTopBarState extends State<CustomTopBar> {
           title,
           style: GoogleFonts.inter(
             fontSize: isTablet ? 12.5 : 13.5,
-            fontWeight: isActive ? FontWeight.w700 : FontWeight.w600,
+            fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
             color: isActive ? _primaryOrange : const Color(0xFF555555),
           ),
         ),
@@ -356,8 +280,8 @@ class _CustomTopBarState extends State<CustomTopBar> {
   }
 
   Widget _profileAvatar({required double radius}) {
-    final avatarUrl =
-        supabase.auth.currentUser?.userMetadata?['avatar_url']?.toString();
+    final avatarUrl = supabase.auth.currentUser?.userMetadata?['avatar_url']
+        ?.toString();
     return CircleAvatar(
       radius: radius,
       backgroundColor: _primaryOrange,

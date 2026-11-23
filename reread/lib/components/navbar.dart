@@ -4,7 +4,12 @@ import 'package:google_fonts/google_fonts.dart';
 class CustomNavbar extends StatelessWidget implements PreferredSizeWidget {
   const CustomNavbar({super.key});
 
-  static const _links = ['Browse', 'Sell', 'About', 'Search'];
+  static const _links = ['Browse', 'Sell', 'About'];
+  static const _routes = {
+    'Browse': '/home',
+    'Sell': '/sellBook',
+    'About': '/aboutUs',
+  };
 
   @override
   Size get preferredSize => const Size.fromHeight(70);
@@ -41,7 +46,8 @@ class CustomNavbar extends StatelessWidget implements PreferredSizeWidget {
                   children: [
                     for (var i = 0; i < _links.length; i++) ...[
                       TextButton(
-                        onPressed: () => _showComingSoon(context, _links[i]),
+                        onPressed: () =>
+                            Navigator.pushNamed(context, _routes[_links[i]]!),
                         child: Text(
                           _links[i],
                           style: TextStyle(
@@ -75,7 +81,8 @@ class CustomNavbar extends StatelessWidget implements PreferredSizeWidget {
                 const SizedBox(width: 8),
                 PopupMenuButton<String>(
                   tooltip: 'Buka menu',
-                  onSelected: (label) => _showComingSoon(context, label),
+                  onSelected: (label) =>
+                      Navigator.pushNamed(context, _routes[label]!),
                   itemBuilder: (context) => _links
                       .map(
                         (label) => PopupMenuItem<String>(
@@ -105,10 +112,4 @@ class CustomNavbar extends StatelessWidget implements PreferredSizeWidget {
       );
     },
   );
-
-  void _showComingSoon(BuildContext context, String title) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('$title segera tersedia.')));
-  }
 }

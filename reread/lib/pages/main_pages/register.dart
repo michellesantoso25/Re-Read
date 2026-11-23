@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:reread/components/navbar.dart';
 import 'package:reread/main.dart';
+import 'package:reread/services/account_validation.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
@@ -29,14 +30,19 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Future<void> _signUp() async {
     final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
+    final password = _passwordController.text;
     final fullName = _fullNameController.text.trim();
     final phone = _phoneController.text.trim();
 
-    if (email.isEmpty || password.isEmpty || fullName.isEmpty) {
+    final validationError =
+        AccountValidation.validateFullName(fullName) ??
+        AccountValidation.validateEmail(email) ??
+        AccountValidation.validateNewPassword(password) ??
+        AccountValidation.validatePhone(phone);
+    if (validationError != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Name, Email and Password must be filled.'),
+        SnackBar(
+          content: Text(validationError),
           backgroundColor: Colors.orangeAccent,
         ),
       );
@@ -52,23 +58,29 @@ class _RegisterPageState extends State<RegisterPage> {
         data: {'full_name': fullName, 'phone_number': phone},
       );
 
-      if (res.session == null) {
-        await supabase.auth.signInWithPassword(
-          email: email,
-          password: password,
+      if (mounted && res.session == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Akun dibuat. Silakan cek email untuk verifikasi sebelum masuk.',
+            ),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 6),
+          ),
         );
+        Navigator.pushReplacementNamed(context, '/login');
+        return;
       }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Registration Successful!'),
+            content: Text('Akun berhasil dibuat.'),
             backgroundColor: Colors.green,
           ),
         );
-
-        // Jika datang dari tombol "Start now" di Sell a Book, langsung ke Seller Dashboard
-        final redirectRoute = ModalRoute.of(context)?.settings.arguments as String?;
+        final redirectRoute =
+            ModalRoute.of(context)?.settings.arguments as String?;
         Navigator.pushReplacementNamed(context, redirectRoute ?? '/home');
       }
     } catch (error) {
@@ -207,7 +219,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         const SizedBox(height: 4),
 
                         Text(
-                          'Join thousands of readers giving books a second life.',
+                          'Buy thoughtfully, sell simply, and keep stories in circulation.',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.inter(
                             fontSize: 11,
@@ -437,7 +449,9 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                             GestureDetector(
                               onTap: () {
-                                final redirectRoute = ModalRoute.of(context)?.settings.arguments;
+                                final redirectRoute = ModalRoute.of(
+                                  context,
+                                )?.settings.arguments;
                                 Navigator.pushReplacementNamed(
                                   context,
                                   '/login',

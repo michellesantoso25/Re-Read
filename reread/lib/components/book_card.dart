@@ -6,7 +6,9 @@ import 'package:reread/components/cart_feedback.dart';
 
 /// Format angka ke Rupiah, contoh: 85000 -> "Rp 85.000"
 String formatRupiah(dynamic price) {
-  final value = (price ?? 0) is int ? price as int : (price as num?)?.toInt() ?? 0;
+  final value = (price ?? 0) is int
+      ? price as int
+      : (price as num?)?.toInt() ?? 0;
   final digits = value.toString();
   final buffer = StringBuffer();
   for (var i = 0; i < digits.length; i++) {
@@ -63,7 +65,7 @@ class BookCard extends StatelessWidget {
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () => _openDetail(context),
+        onTap: isSeller ? null : () => _openDetail(context),
         child: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
@@ -82,6 +84,30 @@ class BookCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
+              if (isSeller && book['qc_status']?.toString() != 'approved') ...[
+                Container(
+                  margin: const EdgeInsets.only(bottom: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: book['qc_status']?.toString() == 'rejected'
+                        ? const Color(0xFFFFE4E4)
+                        : const Color(0xFFFFF2D8),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Text(
+                    book['qc_status']?.toString() == 'rejected'
+                        ? 'REJECTED'
+                        : 'PENDING REVIEW',
+                    style: GoogleFonts.inter(
+                      fontSize: 8,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
               Text(
                 book['title'] ?? '-',
                 maxLines: 2,

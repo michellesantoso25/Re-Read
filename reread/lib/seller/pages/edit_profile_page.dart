@@ -30,6 +30,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _supabase = Supabase.instance.client;
 
   final _nameController = TextEditingController();
+  final _shopNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
 
@@ -61,6 +62,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   void dispose() {
     _nameController.dispose();
+    _shopNameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
     _streetController.dispose();
@@ -128,6 +130,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
               user.email?.split('@').first ??
               '')
           .toString();
+      final resolvedShopName = (profileRow?['shop_name'] ??
+              meta['shop_name'] ??
+              '')
+          .toString();
 
       final resolvedEmail =
           (profileRow?['email'] ?? user.email ?? '').toString();
@@ -157,6 +163,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           .toString();
 
       _nameController.text = resolvedName;
+      _shopNameController.text = resolvedShopName;
       _emailController.text = resolvedEmail;
       _phoneController.text = rawPhone.toString();
 
@@ -228,14 +235,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
     if (user == null) return;
 
     final name = _nameController.text.trim();
+    final shopName = _shopNameController.text.trim();
     final email = _emailController.text.trim();
     final phone = _phoneController.text.trim();
 
-    if (name.isEmpty || email.isEmpty) {
+    if (name.isEmpty || email.isEmpty || shopName.length < 2 || shopName.length > 60) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           backgroundColor: Color(0xFFE52E2E),
-          content: Text('Name and email cannot be empty.'),
+          content: Text('Enter your name, email, and a shop name (2–60 characters).'),
         ),
       );
       return;
@@ -250,6 +258,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         ...?user.userMetadata,
         'full_name': name,
         'name': name,
+        'shop_name': shopName,
         'phone': phone,
         'phone_number': phone,
         if (uploadedAvatarUrl != null && uploadedAvatarUrl.isNotEmpty)
@@ -266,6 +275,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       final profilePayload = <String, dynamic>{
         'full_name': name,
         'name': name,
+        'shop_name': shopName,
         'email': email,
         'phone': phone,
         if (uploadedAvatarUrl != null && uploadedAvatarUrl.isNotEmpty)
@@ -521,6 +531,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           'Name',
                           _nameController,
                           hint: _isLoading ? 'Loading...' : 'Enter your name',
+                        ),
+                        const SizedBox(height: 16),
+                        _buildEditableTextField(
+                          'Shop Name',
+                          _shopNameController,
+                          hint: _isLoading
+                              ? 'Loading...'
+                              : 'Enter your public shop name',
                         ),
                         const SizedBox(height: 16),
                         _buildEditableTextField(

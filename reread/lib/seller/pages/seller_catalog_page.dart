@@ -54,7 +54,9 @@ class _SellerCatalogPageState extends State<SellerCatalogPage> {
 
       if (!mounted) return;
       setState(() {
-        _books = (response as List).map((e) => Map<String, dynamic>.from(e as Map)).toList();
+        _books = (response as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
         _isLoading = false;
       });
     } catch (e) {
@@ -77,13 +79,17 @@ class _SellerCatalogPageState extends State<SellerCatalogPage> {
       final title = _safeStr(book['title']).toLowerCase();
       final author = _safeStr(book['author']).toLowerCase();
       final isbn = _safeStr(book['isbn']).toLowerCase();
-      return title.contains(query) || author.contains(query) || isbn.contains(query);
+      return title.contains(query) ||
+          author.contains(query) ||
+          isbn.contains(query);
     }).toList();
 
     list.sort((a, b) {
       final priceA = num.tryParse(_safeStr((a as Map)['price'])) ?? 0;
       final priceB = num.tryParse(_safeStr((b as Map)['price'])) ?? 0;
-      return _sortAscending ? priceA.compareTo(priceB) : priceB.compareTo(priceA);
+      return _sortAscending
+          ? priceA.compareTo(priceB)
+          : priceB.compareTo(priceA);
     });
     return list;
   }
@@ -98,7 +104,8 @@ class _SellerCatalogPageState extends State<SellerCatalogPage> {
       body: LayoutBuilder(
         builder: (context, constraints) {
           final isMobile = constraints.maxWidth < 650;
-          final isTablet = constraints.maxWidth >= 650 && constraints.maxWidth < 1050;
+          final isTablet =
+              constraints.maxWidth >= 650 && constraints.maxWidth < 1050;
           final padding = isMobile ? 16.0 : (isTablet ? 24.0 : 40.0);
           final crossAxisCount = isMobile ? 2 : (isTablet ? 3 : 5);
 
@@ -117,7 +124,7 @@ class _SellerCatalogPageState extends State<SellerCatalogPage> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Trusted seller · 4.9 rating · ${_books.length} books listed',
+                  '${_books.length} listing di katalog Anda',
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     color: const Color(0xFF7A7A7A),
@@ -135,14 +142,22 @@ class _SellerCatalogPageState extends State<SellerCatalogPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 18),
                   child: Row(
                     children: [
-                      const Icon(Icons.search, color: Color(0xFF888888), size: 20),
+                      const Icon(
+                        Icons.search,
+                        color: Color(0xFF888888),
+                        size: 20,
+                      ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: TextField(
-                          onChanged: (val) => setState(() => _searchQuery = val),
+                          onChanged: (val) =>
+                              setState(() => _searchQuery = val),
                           decoration: InputDecoration(
                             hintText: 'Search by title, author, or ISBN',
-                            hintStyle: GoogleFonts.inter(fontSize: 13, color: const Color(0xFF888888)),
+                            hintStyle: GoogleFonts.inter(
+                              fontSize: 13,
+                              color: const Color(0xFF888888),
+                            ),
                             border: InputBorder.none,
                             isDense: true,
                           ),
@@ -159,14 +174,20 @@ class _SellerCatalogPageState extends State<SellerCatalogPage> {
                   children: [
                     Text(
                       '${displayedBooks.length} books available',
-                      style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF888888)),
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: const Color(0xFF888888),
+                      ),
                     ),
                     GestureDetector(
-                      onTap: () => setState(() => _sortAscending = !_sortAscending),
+                      onTap: () =>
+                          setState(() => _sortAscending = !_sortAscending),
                       child: Row(
                         children: [
                           Text(
-                            _sortAscending ? 'Sort: Lowest Price' : 'Sort: Highest Price',
+                            _sortAscending
+                                ? 'Sort: Lowest Price'
+                                : 'Sort: Highest Price',
                             style: GoogleFonts.inter(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -175,7 +196,9 @@ class _SellerCatalogPageState extends State<SellerCatalogPage> {
                           ),
                           const SizedBox(width: 4),
                           Icon(
-                            _sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                            _sortAscending
+                                ? Icons.arrow_upward
+                                : Icons.arrow_downward,
                             size: 15,
                             color: const Color(0xFF2C2C2C),
                           ),
@@ -196,17 +219,26 @@ class _SellerCatalogPageState extends State<SellerCatalogPage> {
                 else if (displayedBooks.isEmpty)
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 24),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 60,
+                      horizontal: 24,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
                       children: [
-                        const Icon(Icons.menu_book_outlined, size: 42, color: Color(0xFF999999)),
+                        const Icon(
+                          Icons.menu_book_outlined,
+                          size: 42,
+                          color: Color(0xFF999999),
+                        ),
                         const SizedBox(height: 12),
                         Text(
-                          _books.isEmpty ? 'No books listed yet' : 'No matching books found',
+                          _books.isEmpty
+                              ? 'No books listed yet'
+                              : 'No matching books found',
                           style: GoogleFonts.inter(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
@@ -218,7 +250,10 @@ class _SellerCatalogPageState extends State<SellerCatalogPage> {
                           _books.isEmpty
                               ? 'Start selling by adding your first book.'
                               : 'Try searching with a different keyword.',
-                          style: GoogleFonts.inter(fontSize: 13, color: const Color(0xFF7A7A7A)),
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            color: const Color(0xFF7A7A7A),
+                          ),
                         ),
                         if (_books.isEmpty) ...[
                           const SizedBox(height: 18),
@@ -229,9 +264,15 @@ class _SellerCatalogPageState extends State<SellerCatalogPage> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20),
                               ),
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 12,
+                              ),
                             ),
-                            onPressed: () => Navigator.pushReplacementNamed(context, '/sell_a_book_page'),
+                            onPressed: () => Navigator.pushReplacementNamed(
+                              context,
+                              '/sell_a_book_page',
+                            ),
                             child: Text(
                               'Sell a Book',
                               style: GoogleFonts.inter(
@@ -257,7 +298,9 @@ class _SellerCatalogPageState extends State<SellerCatalogPage> {
                     ),
                     itemCount: displayedBooks.length,
                     itemBuilder: (context, index) {
-                      final book = Map<String, dynamic>.from(displayedBooks[index] as Map);
+                      final book = Map<String, dynamic>.from(
+                        displayedBooks[index] as Map,
+                      );
                       return BookCard(
                         book: book,
                         isSeller: true,
@@ -317,34 +360,51 @@ class _SellerCatalogPageState extends State<SellerCatalogPage> {
                 String coverUrl = currentCover;
 
                 if (newImageBytes != null) {
-                  final ext = (newFileName ?? 'cover.jpg').split('.').last.toLowerCase();
-                  final filePath = '${user.id}/${DateTime.now().millisecondsSinceEpoch}.$ext';
+                  final ext = (newFileName ?? 'cover.jpg')
+                      .split('.')
+                      .last
+                      .toLowerCase();
+                  final filePath =
+                      '${user.id}/${DateTime.now().millisecondsSinceEpoch}.$ext';
 
-                  await supabase.storage.from('book-covers').uploadBinary(
+                  await supabase.storage
+                      .from('book-covers')
+                      .uploadBinary(
                         filePath,
                         newImageBytes!,
                         fileOptions: FileOptions(
-                          contentType: ext == 'png' ? 'image/png' : 'image/jpeg',
+                          contentType: ext == 'png'
+                              ? 'image/png'
+                              : 'image/jpeg',
                           upsert: true,
                         ),
                       );
 
-                  coverUrl = supabase.storage.from('book-covers').getPublicUrl(filePath);
+                  coverUrl = supabase.storage
+                      .from('book-covers')
+                      .getPublicUrl(filePath);
                 }
 
-                final cleanPrice = priceCtrl.text.replaceAll(RegExp(r'[^0-9]'), '');
+                final cleanPrice = priceCtrl.text.replaceAll(
+                  RegExp(r'[^0-9]'),
+                  '',
+                );
 
-                await supabase.from('books').update({
-                  'title': titleCtrl.text.trim(),
-                  'genre': genreCtrl.text.trim(),
-                  'author': authorCtrl.text.trim(),
-                  'edition': editionCtrl.text.trim(),
-                  'isbn': isbnCtrl.text.trim(),
-                  'language': langCtrl.text.trim(),
-                  'price': int.tryParse(cleanPrice) ?? book['price'],
-                  'synopsis': descCtrl.text.trim(),
-                  'cover': coverUrl,
-                }).eq('id', book['id']);
+                await supabase
+                    .from('books')
+                    .update({
+                      'title': titleCtrl.text.trim(),
+                      'genre': genreCtrl.text.trim(),
+                      'author': authorCtrl.text.trim(),
+                      'edition': editionCtrl.text.trim(),
+                      'isbn': isbnCtrl.text.trim(),
+                      'language': langCtrl.text.trim(),
+                      'price': int.tryParse(cleanPrice) ?? book['price'],
+                      'synopsis': descCtrl.text.trim(),
+                      'cover': coverUrl,
+                      'qc_status': 'pending_review',
+                    })
+                    .eq('id', book['id']);
 
                 if (!mounted) return;
                 Navigator.of(dialogContext).pop();
@@ -368,7 +428,9 @@ class _SellerCatalogPageState extends State<SellerCatalogPage> {
             }
 
             return Dialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
               child: Container(
                 width: 480,
                 padding: const EdgeInsets.all(24),
@@ -386,7 +448,10 @@ class _SellerCatalogPageState extends State<SellerCatalogPage> {
                         children: [
                           Text(
                             'Edit Book',
-                            style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
+                            style: GoogleFonts.inter(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           IconButton(
                             icon: const Icon(Icons.close, color: primaryOrange),
@@ -410,55 +475,88 @@ class _SellerCatalogPageState extends State<SellerCatalogPage> {
                             decoration: BoxDecoration(
                               color: const Color(0xFFFFE1D2).withOpacity(0.45),
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: primaryOrange, width: 1.2),
+                              border: Border.all(
+                                color: primaryOrange,
+                                width: 1.2,
+                              ),
                             ),
                             child: newImageBytes != null
                                 ? ClipRRect(
                                     borderRadius: BorderRadius.circular(6),
-                                    child: Image.memory(newImageBytes!, fit: BoxFit.cover),
+                                    child: Image.memory(
+                                      newImageBytes!,
+                                      fit: BoxFit.cover,
+                                    ),
                                   )
                                 : currentCover.isNotEmpty
-                                    ? ClipRRect(
-                                        borderRadius: BorderRadius.circular(6),
-                                        child: Image.network(currentCover, fit: BoxFit.cover),
-                                      )
-                                    : Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          const Icon(Icons.photo_library_outlined, size: 24, color: Color(0xFF333333)),
-                                          const SizedBox(height: 6),
-                                          Text(
-                                            'Change cover photo',
-                                            style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold),
-                                          ),
-                                          Text(
-                                            'JPG or PNG · max 5 MB',
-                                            style: GoogleFonts.inter(fontSize: 10, color: const Color(0xFF888888)),
-                                          ),
-                                        ],
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(6),
+                                    child: Image.network(
+                                      currentCover,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  )
+                                : Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                        Icons.photo_library_outlined,
+                                        size: 24,
+                                        color: Color(0xFF333333),
                                       ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        'Change cover photo',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Text(
+                                        'JPG or PNG · max 5 MB',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 10,
+                                          color: const Color(0xFF888888),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                           ),
                         ),
                       ),
                       const SizedBox(height: 20),
 
-                      Text('Book information', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold)),
+                      Text(
+                        'Book information',
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const SizedBox(height: 14),
 
                       Row(
                         children: [
-                          Expanded(child: _buildTextField('Book title', titleCtrl)),
+                          Expanded(
+                            child: _buildTextField('Book title', titleCtrl),
+                          ),
                           const SizedBox(width: 12),
-                          Expanded(child: _buildTextField('Category', genreCtrl)),
+                          Expanded(
+                            child: _buildTextField('Category', genreCtrl),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 12),
 
                       Row(
                         children: [
-                          Expanded(child: _buildTextField('Author', authorCtrl)),
+                          Expanded(
+                            child: _buildTextField('Author', authorCtrl),
+                          ),
                           const SizedBox(width: 12),
-                          Expanded(child: _buildTextField('Edition', editionCtrl)),
+                          Expanded(
+                            child: _buildTextField('Edition', editionCtrl),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 12),
@@ -467,16 +565,26 @@ class _SellerCatalogPageState extends State<SellerCatalogPage> {
                         children: [
                           Expanded(child: _buildTextField('ISBN', isbnCtrl)),
                           const SizedBox(width: 12),
-                          Expanded(child: _buildTextField('Language', langCtrl)),
+                          Expanded(
+                            child: _buildTextField('Language', langCtrl),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 12),
 
                       Row(
                         children: [
-                          Expanded(child: _buildTextField('Selling price (Rp)', priceCtrl, isNumber: true)),
+                          Expanded(
+                            child: _buildTextField(
+                              'Selling price (Rp)',
+                              priceCtrl,
+                              isNumber: true,
+                            ),
+                          ),
                           const SizedBox(width: 12),
-                          Expanded(child: _buildTextField('Description', descCtrl)),
+                          Expanded(
+                            child: _buildTextField('Description', descCtrl),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 24),
@@ -488,18 +596,27 @@ class _SellerCatalogPageState extends State<SellerCatalogPage> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: primaryOrange,
                             elevation: 0,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
                           ),
                           onPressed: isUpdating ? null : updateBook,
                           child: isUpdating
                               ? const SizedBox(
                                   width: 18,
                                   height: 18,
-                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
                                 )
                               : Text(
                                   'Update',
-                                  style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
                                 ),
                         ),
                       ),
@@ -514,13 +631,21 @@ class _SellerCatalogPageState extends State<SellerCatalogPage> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, {bool isNumber = false}) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    bool isNumber = false,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF333333)),
+          style: GoogleFonts.inter(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF333333),
+          ),
         ),
         const SizedBox(height: 6),
         SizedBox(
@@ -531,7 +656,10 @@ class _SellerCatalogPageState extends State<SellerCatalogPage> {
             style: GoogleFonts.inter(fontSize: 12),
             decoration: InputDecoration(
               isDense: true,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 10,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(6),
                 borderSide: const BorderSide(color: Color(0xFFDDDDDD)),

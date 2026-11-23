@@ -19,20 +19,37 @@ import 'package:reread/pages/main_pages/faqs_page.dart';
 
 import 'package:reread/pages/buyer_pages/home_page.dart';
 import 'package:reread/pages/buyer_pages/profile_page.dart';
+import 'package:reread/pages/buyer_pages/payment_status_page.dart';
 import 'package:reread/pages/buyer_pages/cart_page.dart';
+import 'package:reread/pages/buyer_pages/checkout_page.dart';
 import 'package:reread/pages/buyer_pages/categories_page.dart';
 import 'package:reread/pages/buyer_pages/new_arrivals_page.dart';
 import 'package:reread/pages/buyer_pages/sell_book_page.dart';
+import 'package:reread/services/cart_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await dotenv.load(fileName: ".env");
 
+  final supabaseUrl = dotenv.env['SUPABASE_URL'];
+  final supabasePublishableKey =
+      dotenv.env['SUPABASE_PUBLISHABLE_KEY'] ?? dotenv.env['SUPABASE_ANON_KEY'];
+  if (supabaseUrl == null ||
+      supabaseUrl.isEmpty ||
+      supabasePublishableKey == null ||
+      supabasePublishableKey.isEmpty) {
+    throw StateError(
+      'Configure SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY in .env before launching Re:Read.',
+    );
+  }
+
   await Supabase.initialize(
-    url: dotenv.env['SUPABASE_URL']!,
-    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
+    url: supabaseUrl,
+    publishableKey: supabasePublishableKey,
   );
+
+  await CartService.instance.load();
 
   runApp(const MyApp());
 }
@@ -44,8 +61,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ignore: unused_local_variable
     final session = supabase.auth.currentSession;
+    final initialBrowserRoute = Uri.tryParse(Uri.base.fragment);
+    final paymentRoute = initialBrowserRoute?.pathSegments;
+    final initialRoute =
+        paymentRoute != null &&
+            paymentRoute.length >= 2 &&
+            paymentRoute.first == 'payment-status'
+        ? '/payment-status/${paymentRoute[1]}'
+        : session != null
+        ? '/home'
+        : '/login';
 
     return MaterialApp(
       title: 'Re:Read',
@@ -59,15 +85,15 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
 
-      // initialRoute: session != null ? '/home' : '/login',
-      initialRoute: '/profile_page',
-      
+      initialRoute: initialRoute,
+
       routes: {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/home': (context) => const HomePage(),
         '/profile': (context) => const ProfilePage(),
         '/cart': (context) => const CartPage(),
+        '/checkout': (context) => const CheckoutPage(),
         '/categories': (context) => const CategoriesPage(),
         '/newArrivals': (context) => const NewArrivalsPage(),
         '/sellBook': (context) => const SellBookPage(),
@@ -75,10 +101,17 @@ class MyApp extends StatelessWidget {
         '/faqs': (context) => const FaqsPage(),
       },
 
-      // Bagian Seller 
+      // Bagian Seller
       onGenerateRoute: (settings) {
+        final parsedRoute = Uri.tryParse(settings.name ?? '');
+        final routeSegments = parsedRoute?.pathSegments ?? const <String>[];
         Widget? page;
-        
+
+        if (routeSegments.length >= 2 &&
+            routeSegments.first == 'payment-status') {
+          page = PaymentStatusPage(orderId: routeSegments[1]);
+        }
+
         switch (settings.name) {
           case '/seller_dashboard':
             page = const SellerDashboard();
@@ -117,8 +150,8 @@ class MyApp extends StatelessWidget {
             reverseTransitionDuration: Duration.zero,
           );
         }
- 
-        return null; 
+
+        return null;
       },
     );
   }

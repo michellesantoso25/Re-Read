@@ -31,7 +31,7 @@ class CustomFooter extends StatelessWidget {
     Navigator.of(context).pushNamedAndRemoveUntil(route, (r) => false);
   }
 
-  /// Info pages (FAQs, Terms, Privacy): push so Back returns to where you were.
+  /// Info pages (such as FAQs): push so Back returns to where you were.
   void _goInfo(BuildContext context, String route) {
     Navigator.of(context).pushNamed(route);
   }
@@ -44,12 +44,6 @@ class CustomFooter extends StatelessWidget {
         reverseTransitionDuration: Duration.zero,
       ),
     );
-  }
-
-  void _comingSoon(BuildContext context, String title) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('$title is coming soon.')));
   }
 
   // ----------------------------------------------------------------- build
@@ -101,7 +95,9 @@ class CustomFooter extends StatelessWidget {
                     // Same spacing between every column, and the whole group
                     // is centred, so no empty space piles up on either side.
                     final gap = SizedBox(
-                      width: ((c.maxWidth - 520) / 4).clamp(16.0, 125.0).toDouble(),
+                      width: ((c.maxWidth - 520) / 4)
+                          .clamp(16.0, 125.0)
+                          .toDouble(),
                     );
                     return Center(
                       child: FittedBox(
@@ -244,8 +240,9 @@ class CustomFooter extends StatelessWidget {
     required bool alignRight,
   }) {
     return Column(
-      crossAxisAlignment:
-          alignRight ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      crossAxisAlignment: alignRight
+          ? CrossAxisAlignment.end
+          : CrossAxisAlignment.start,
       children: [
         Text(
           title,
@@ -258,67 +255,57 @@ class CustomFooter extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         for (final item in items)
-          _FooterLink(label: item.label, onTap: item.onTap, alignRight: alignRight),
+          _FooterLink(
+            label: item.label,
+            onTap: item.onTap,
+            alignRight: alignRight,
+          ),
       ],
     );
   }
 
   Widget _topGenres(BuildContext context, bool alignRight) {
     // Labels must match the genre values stored in the books table.
-    const genres = ['Fiction', 'Non-Fiction', 'Mystery', 'Biography', 'Romance'];
-    return _footerColumn(
-      'Top Genres',
-      [
-        for (final g in genres) _FooterItem(g, () => _openGenre(context, g)),
-      ],
-      alignRight: alignRight,
-    );
+    const genres = [
+      'Fiction',
+      'Non-Fiction',
+      'Mystery',
+      'Biography',
+      'Romance',
+    ];
+    return _footerColumn('Top Genres', [
+      for (final g in genres) _FooterItem(g, () => _openGenre(context, g)),
+    ], alignRight: alignRight);
   }
 
-  Widget _quickLinks(BuildContext context, bool alignRight) => _footerColumn(
-    'Quick Links',
-    [
-      _FooterItem('BestSellers', () => _goMain(context, '/newArrivals')),
-      _FooterItem('New Arrivals', () => _goMain(context, '/newArrivals')),
-      _FooterItem('Sell a Book', () => _goMain(context, '/sellBook')),
-      _FooterItem('Categories', () => _goMain(context, '/categories')),
-    ],
-    alignRight: alignRight,
-  );
+  Widget _quickLinks(BuildContext context, bool alignRight) =>
+      _footerColumn('Quick Links', [
+        _FooterItem('BestSellers', () => _goMain(context, '/newArrivals')),
+        _FooterItem('New Arrivals', () => _goMain(context, '/newArrivals')),
+        _FooterItem('Sell a Book', () => _goMain(context, '/sellBook')),
+        _FooterItem('Categories', () => _goMain(context, '/categories')),
+      ], alignRight: alignRight);
 
-  Widget _companyLinks(BuildContext context, bool alignRight) => _footerColumn(
-    'Company',
-    [
-      _FooterItem('About Us', () => _goMain(context, '/aboutUs')),
-      _FooterItem('FAQs', () => _goInfo(context, '/faqs')),
-    ],
-    alignRight: alignRight,
-  );
+  Widget _companyLinks(BuildContext context, bool alignRight) =>
+      _footerColumn('Company', [
+        _FooterItem('About Us', () => _goMain(context, '/aboutUs')),
+        _FooterItem('FAQs', () => _goInfo(context, '/faqs')),
+      ], alignRight: alignRight);
 
-  Widget _supportLinks(BuildContext context, bool alignRight) => _footerColumn(
-    'Help & Support',
-    [
-      _FooterItem(
-        'Contact Us',
-        () => _launchURL('mailto:customer@reread.com'),
-      ),
-      _FooterItem('Track Orders', () => _comingSoon(context, 'Track Orders')),
-      _FooterItem(
-        'Terms & Conditions',
-        () => _goInfo(context, '/terms'),
-      ),
-      _FooterItem('Privacy Policy', () => _goInfo(context, '/privacy')),
-      _FooterItem(
-        'Return & Refund',
-        () => _comingSoon(context, 'Return & Refund'),
-      ),
-    ],
-    alignRight: alignRight,
-  );
+  Widget _supportLinks(BuildContext context, bool alignRight) =>
+      _footerColumn('Help & Support', [
+        _FooterItem(
+          'Contact Us',
+          () => _launchURL('mailto:customer@reread.com'),
+        ),
+        _FooterItem('Track Orders', () => _goMain(context, '/profile')),
+        _FooterItem('Returns & Refunds', () => _goInfo(context, '/faqs')),
+      ], alignRight: alignRight);
 
   Widget _brandAndContact(Color primaryOrange, bool alignRight) => Column(
-    crossAxisAlignment:
-        alignRight ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+    crossAxisAlignment: alignRight
+        ? CrossAxisAlignment.end
+        : CrossAxisAlignment.start,
     children: [
       Image.asset(
         'lib/assets/logo.png',
@@ -408,8 +395,9 @@ class _FooterLinkState extends State<_FooterLink> {
             style: GoogleFonts.inter(
               fontSize: 11,
               color: _hover ? Colors.white : Colors.white70,
-              decoration:
-                  _hover ? TextDecoration.underline : TextDecoration.none,
+              decoration: _hover
+                  ? TextDecoration.underline
+                  : TextDecoration.none,
               decorationColor: Colors.white,
             ),
           ),

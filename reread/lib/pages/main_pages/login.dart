@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:reread/components/navbar.dart';
 import 'package:reread/main.dart';
+import 'package:reread/services/account_validation.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -26,12 +27,13 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _signIn() async {
     final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
+    final password = _passwordController.text;
 
-    if (email.isEmpty || password.isEmpty) {
+    final emailError = AccountValidation.validateEmail(email);
+    if (emailError != null || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Email and password must be filled.'),
+        SnackBar(
+          content: Text(emailError ?? 'Password wajib diisi.'),
           backgroundColor: Colors.orangeAccent,
         ),
       );
@@ -41,18 +43,13 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _isLoading = true);
 
     try {
-      final response = await supabase.auth.signInWithPassword(
-        email: email,
-        password: password,
-      );
-
-      debugPrint('SIGN IN SUCCESS');
-      debugPrint('User ID: ${response.user?.id}');
+      await supabase.auth.signInWithPassword(email: email, password: password);
 
       if (!mounted) return;
 
       // Jika datang dari tombol "Start now" di Sell a Book, langsung ke Seller Dashboard
-      final redirectRoute = ModalRoute.of(context)?.settings.arguments as String?;
+      final redirectRoute =
+          ModalRoute.of(context)?.settings.arguments as String?;
       Navigator.pushReplacementNamed(context, redirectRoute ?? '/home');
     } on AuthException catch (error) {
       if (!mounted) return;
@@ -356,7 +353,9 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             GestureDetector(
                               onTap: () {
-                                final redirectRoute = ModalRoute.of(context)?.settings.arguments;
+                                final redirectRoute = ModalRoute.of(
+                                  context,
+                                )?.settings.arguments;
                                 Navigator.pushReplacementNamed(
                                   context,
                                   '/register',

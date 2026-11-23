@@ -66,9 +66,9 @@ class _SellABookPageState extends State<SellABookPage> {
       });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to pick image: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to pick image: $e')));
     }
   }
 
@@ -102,11 +102,25 @@ class _SellABookPageState extends State<SellABookPage> {
     final author = _authorController.text.trim();
     final priceText = _priceController.text.replaceAll(RegExp(r'[^0-9]'), '');
 
-    if (title.isEmpty || author.isEmpty || priceText.isEmpty) {
+    final price = int.tryParse(priceText);
+    if (title.isEmpty || author.isEmpty || price == null || price < 1000) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Book title, author, and selling price are required.'),
+          content: Text(
+            'Title and author are required; minimum selling price is Rp 1.000.',
+          ),
           backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    if (_selectedImageBytes == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Upload clear photos of the actual book before listing.',
+          ),
         ),
       );
       return;
@@ -118,10 +132,16 @@ class _SellABookPageState extends State<SellABookPage> {
       String coverUrl = '';
 
       if (_selectedImageBytes != null) {
-        final ext = (_selectedFileName ?? 'cover.jpg').split('.').last.toLowerCase();
-        final filePath = '${user.id}/${DateTime.now().millisecondsSinceEpoch}.$ext';
+        final ext = (_selectedFileName ?? 'cover.jpg')
+            .split('.')
+            .last
+            .toLowerCase();
+        final filePath =
+            '${user.id}/${DateTime.now().millisecondsSinceEpoch}.$ext';
 
-        await supabase.storage.from('book-covers').uploadBinary(
+        await supabase.storage
+            .from('book-covers')
+            .uploadBinary(
               filePath,
               _selectedImageBytes!,
               fileOptions: FileOptions(
@@ -144,9 +164,9 @@ class _SellABookPageState extends State<SellABookPage> {
         'condition': _determineCondition(),
         'synopsis': _descriptionController.text.trim(),
         'stock': 1,
-        'price': int.tryParse(priceText) ?? 0,
+        'price': price,
         'cover': coverUrl,
-        'qc_status': 'approved',
+        'qc_status': 'pending_review',
         'edition': _editionController.text.trim().isEmpty
             ? 'Paperback'
             : _editionController.text.trim(),
@@ -161,7 +181,9 @@ class _SellABookPageState extends State<SellABookPage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Book published successfully!'),
+          content: Text(
+            'Listing submitted for review. It will appear in the marketplace after approval.',
+          ),
           backgroundColor: Color(0xFF1B8A5A),
         ),
       );
@@ -279,7 +301,8 @@ class _SellABookPageState extends State<SellABookPage> {
                                       ),
                                     )
                                   : Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         const Icon(
                                           Icons.photo_library_outlined,

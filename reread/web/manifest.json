@@ -1,11 +1,11 @@
 {
-    "name": "reread",
-    "short_name": "reread",
+    "name": "Re:Read",
+    "short_name": "Re:Read",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#ECE6DF",
+    "theme_color": "#E05627",
+    "description": "A marketplace for buying and selling pre-loved books in Indonesia.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

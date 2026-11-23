@@ -12,7 +12,6 @@ import 'package:reread/pages/buyer_pages/new_arrivals_page.dart';
 import 'package:reread/pages/buyer_pages/profile_page.dart';
 import 'package:reread/pages/buyer_pages/sell_book_page.dart';
 
-
 class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
   final String? activeNav;
   final String? activeGenre;
@@ -24,7 +23,7 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
     'New Arrivals': '/newArrivals',
     'Categories': '/categories',
     'Sell a Book': '/sellBook',
-    'Help & Support': 'null',
+    'Help & Support': '/faqs',
   };
 
   static const Map<String, IconData> _navIcons = {
@@ -104,22 +103,7 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
                           context,
                           iconOnly: constraints.maxWidth < 380,
                         ),
-                        const SizedBox(width: 2),
-                        IconButton(
-                          tooltip: 'Notifications',
-                          icon: const Icon(
-                            Icons.notifications_none_rounded,
-                            size: 21,
-                          ),
-                          onPressed: () =>
-                              _showComingSoon(context, 'Notification'),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(
-                            minWidth: 34,
-                            minHeight: 40,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 6),
                         InkWell(
                           onTap: () => _openProfile(context),
                           borderRadius: BorderRadius.circular(24),
@@ -208,19 +192,7 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
                           context,
                           iconOnly: tablet && constraints.maxWidth < 700,
                         ),
-                        SizedBox(width: tablet ? 3 : 14),
-                        IconButton(
-                          tooltip: 'Notification',
-                          icon: const Icon(Icons.notifications_none, size: 20),
-                          onPressed: () =>
-                              _showComingSoon(context, 'Notification'),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(
-                            minWidth: 30,
-                            minHeight: 40,
-                          ),
-                        ),
-                        SizedBox(width: tablet ? 3 : 12),
+                        SizedBox(width: tablet ? 6 : 12),
                         InkWell(
                           onTap: () => _openProfile(context),
                           borderRadius: BorderRadius.circular(24),

@@ -43,3 +43,11 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Supabase Edge Function secrets
+supabase/functions/.env
+/supabase/.temp/
+/android/build/
+.env
+.env.*
+!.env.example

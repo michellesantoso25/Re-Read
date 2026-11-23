@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:reread/components/book_card.dart';
 import 'package:reread/components/footer.dart';
 import 'package:reread/components/topbar.dart';
+import 'package:reread/pages/buyer_pages/checkout_page.dart';
 import 'package:reread/services/cart_service.dart';
 
 class CartPage extends StatelessWidget {
@@ -271,8 +272,10 @@ class CartPage extends StatelessWidget {
             // Note: pastikan data buku yang masuk ke CartService menyertakan 'id' & 'seller_id' dari tabel 'books'.
             child: ElevatedButton(
               onPressed: hasItems
-                  ? () => ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Checkout is coming soon.')),
+                  ? () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const CheckoutPage(),
+                      ),
                     )
                   : null,
               style: ElevatedButton.styleFrom(
