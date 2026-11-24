@@ -298,7 +298,7 @@ class CustomFooter extends StatelessWidget {
           'Contact Us',
           () => _launchURL('mailto:customer@reread.com'),
         ),
-        _FooterItem('Track Orders', () => _goMain(context, '/profile')),
+        _FooterItem('Track Orders', () => _goMain(context, '/profile_page')),
         _FooterItem('Returns & Refunds', () => _goInfo(context, '/faqs')),
       ], alignRight: alignRight);
 

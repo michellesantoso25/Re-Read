@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:reread/services/account_mode.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../component/top_bar.dart';
@@ -8,10 +9,7 @@ class _OrderHistoryItem {
   final String order;
   final String status;
 
-  const _OrderHistoryItem({
-    required this.order,
-    required this.status,
-  });
+  const _OrderHistoryItem({required this.order, required this.status});
 }
 
 class ProfilePage extends StatefulWidget {
@@ -84,43 +82,65 @@ class _ProfilePageState extends State<ProfilePage> {
         } catch (_) {}
       }
 
+      String? usersPhone;
+      try {
+        final userRow = await _supabase
+            .from('users')
+            .select('phone_number')
+            .eq('id', user.id)
+            .maybeSingle();
+        usersPhone = userRow?['phone_number']?.toString();
+      } catch (_) {}
+
       final historyList = <_OrderHistoryItem>[];
       try {
-        final ordersRes = await _supabase
-            .from('orders')
-            .select('id, status')
+        final orderItems = await _supabase
+            .from('order_items')
+            .select(
+              'order_id, created_at, orders!inner(id, status, payment_status)',
+            )
             .eq('seller_id', user.id)
             .order('created_at', ascending: false)
-            .limit(3);
+            .limit(12);
 
-        for (final o in List.from(ordersRes)) {
-          final rawId = (o['id'] ?? '').toString();
+        final seenOrders = <String>{};
+        for (final item in List.from(orderItems)) {
+          final order = Map<String, dynamic>.from(item['orders'] as Map);
+          final rawId = (order['id'] ?? item['order_id'] ?? '').toString();
+          if (!seenOrders.add(rawId)) continue;
           final shortId = rawId.length > 8
               ? rawId.substring(0, 8).toUpperCase()
               : rawId;
           historyList.add(
             _OrderHistoryItem(
               order: 'Order #RR-$shortId',
-              status: _formatStatus((o['status'] ?? 'pending').toString()),
+              status: _formatStatus(
+                (order['payment_status'] ?? order['status'] ?? 'pending')
+                    .toString(),
+              ),
             ),
           );
+          if (historyList.length == 3) break;
         }
       } catch (_) {}
 
-      final resolvedName = (profileRow?['full_name'] ??
-              profileRow?['name'] ??
-              profileRow?['username'] ??
-              meta['full_name'] ??
-              meta['name'] ??
-              meta['username'] ??
-              user.email?.split('@').first ??
-              'Seller')
+      final resolvedName =
+          (profileRow?['full_name'] ??
+                  profileRow?['name'] ??
+                  profileRow?['username'] ??
+                  meta['full_name'] ??
+                  meta['name'] ??
+                  meta['username'] ??
+                  user.email?.split('@').first ??
+                  'Seller')
+              .toString();
+
+      final resolvedEmail = (profileRow?['email'] ?? user.email ?? '-')
           .toString();
 
-      final resolvedEmail =
-          (profileRow?['email'] ?? user.email ?? '-').toString();
-
-      final rawPhone = profileRow?['phone'] ??
+      final rawPhone =
+          usersPhone ??
+          profileRow?['phone'] ??
           profileRow?['phone_number'] ??
           meta['phone'] ??
           meta['phone_number'] ??
@@ -129,32 +149,33 @@ class _ProfilePageState extends State<ProfilePage> {
           ? rawPhone.toString()
           : 'No phone number added';
 
-      final resolvedAvatar =
-          (profileRow?['avatar_url'] ?? meta['avatar_url'])?.toString();
+      final resolvedAvatar = (profileRow?['avatar_url'] ?? meta['avatar_url'])
+          ?.toString();
 
       final ratingVal = profileRow?['rating']?.toString();
       final resolvedRating = (ratingVal != null && ratingVal.isNotEmpty)
           ? '$ratingVal - Trusted reader'
           : 'Belum ada ulasan';
-      final resolvedShopName = (profileRow?['shop_name'] ??
-              meta['shop_name'] ??
-              '')
-          .toString()
-          .trim();
+      final resolvedShopName =
+          (profileRow?['shop_name'] ?? meta['shop_name'] ?? '')
+              .toString()
+              .trim();
 
-      _streetController.text = (profileRow?['street'] ??
-              profileRow?['address'] ??
-              meta['street'] ??
-              meta['address'] ??
-              '')
+      _streetController.text =
+          (profileRow?['street'] ??
+                  profileRow?['address'] ??
+                  meta['street'] ??
+                  meta['address'] ??
+                  '')
+              .toString();
+      _cityController.text = (profileRow?['city'] ?? meta['city'] ?? '')
           .toString();
-      _cityController.text =
-          (profileRow?['city'] ?? meta['city'] ?? '').toString();
-      _postalCodeController.text = (profileRow?['postal_code'] ??
-              profileRow?['zip_code'] ??
-              meta['postal_code'] ??
-              '')
-          .toString();
+      _postalCodeController.text =
+          (profileRow?['postal_code'] ??
+                  profileRow?['zip_code'] ??
+                  meta['postal_code'] ??
+                  '')
+              .toString();
 
       if (!mounted) return;
       setState(() {
@@ -195,11 +216,14 @@ class _ProfilePageState extends State<ProfilePage> {
       );
 
       try {
-        await _supabase.from('profiles').update({
+        await _supabase.from('profiles').upsert({
+          'id': user.id,
+          'full_name': _name,
           'street': street,
           'city': city,
           'postal_code': postalCode,
-        }).eq('id', user.id);
+          if (_avatarUrl != null) 'avatar_url': _avatarUrl,
+        }, onConflict: 'id');
       } catch (_) {}
 
       if (!mounted) return;
@@ -207,15 +231,15 @@ class _ProfilePageState extends State<ProfilePage> {
         _isEditingAddress = false;
         _isSavingAddress = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Address updated')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Address updated')));
     } catch (e) {
       if (!mounted) return;
       setState(() => _isSavingAddress = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update address: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to update address: $e')));
     }
   }
 
@@ -225,12 +249,18 @@ class _ProfilePageState extends State<ProfilePage> {
     Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
   }
 
-  void _changeRoleToBuyer() {
-    Navigator.pushNamedAndRemoveUntil(
-      context,
-      '/home',
-      (route) => false,
-    );
+  Future<void> _changeRoleToBuyer() async {
+    try {
+      await AccountMode.set('buyer');
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not switch to buyer mode: $error')),
+      );
+      return;
+    }
+    if (!mounted) return;
+    Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
   }
 
   String _formatStatus(String status) {
@@ -238,6 +268,7 @@ class _ProfilePageState extends State<ProfilePage> {
       case 'pending':
         return 'Pending';
       case 'approved':
+      case 'paid':
       case 'to_ship':
         return 'To ship';
       case 'out_for_delivery':
@@ -255,7 +286,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: bgColor,
-      appBar: const CustomTopBar(activePage: ''),
+      appBar: const CustomTopBar(activePage: 'Profile'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(40.0),
         child: Column(
@@ -363,8 +394,11 @@ class _ProfilePageState extends State<ProfilePage> {
                         const SizedBox(height: 12),
                         Row(
                           children: [
-                            const Icon(Icons.star,
-                                color: Color(0xFFFF5500), size: 16),
+                            const Icon(
+                              Icons.star,
+                              color: Color(0xFFFF5500),
+                              size: 16,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               _ratingText,
@@ -390,7 +424,9 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                           onPressed: () {
                             Navigator.pushReplacementNamed(
-                                context, '/seller_catalog_page');
+                              context,
+                              '/seller_catalog_page',
+                            );
                           },
                           child: Text(
                             'View My catalog',
@@ -507,8 +543,8 @@ class _ProfilePageState extends State<ProfilePage> {
                             _isSavingAddress
                                 ? 'Saving...'
                                 : (_isEditingAddress
-                                    ? 'Save Address'
-                                    : 'Edit Address'),
+                                      ? 'Save Address'
+                                      : 'Edit Address'),
                             style: GoogleFonts.inter(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -602,7 +638,9 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                               onPressed: () {
                                 Navigator.pushReplacementNamed(
-                                    context, '/transaction_history_page');
+                                  context,
+                                  '/transaction_history_page',
+                                );
                               },
                               child: Text(
                                 'View More',
@@ -732,8 +770,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 fontSize: 12,
                 color: const Color(0xFFAAAAAA),
               ),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 10,
+              ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(6),
                 borderSide: const BorderSide(color: Color(0xFFE0E0E0)),

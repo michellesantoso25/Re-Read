@@ -208,7 +208,10 @@ class _SellABookPageState extends State<SellABookPage> {
       backgroundColor: bgColor,
       appBar: const CustomTopBar(activePage: 'Sell a Book'),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(40.0),
+        padding: EdgeInsets.symmetric(
+          horizontal: MediaQuery.sizeOf(context).width < 700 ? 16 : 40,
+          vertical: 24,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -228,291 +231,284 @@ class _SellABookPageState extends State<SellABookPage> {
                 color: const Color(0xFF7A7A7A),
               ),
             ),
+            const SizedBox(height: 6),
+            Text(
+              'Setelah diterbitkan, listing akan ditinjau sebelum tampil di katalog buyer.',
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                color: const Color(0xFF7A7A7A),
+              ),
+            ),
             const SizedBox(height: 24),
 
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // KIRI: Photos Card
-                Expanded(
-                  flex: 3,
-                  child: Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final compact = constraints.maxWidth < 900;
+                return Flex(
+                  direction: compact ? Axis.vertical : Axis.horizontal,
+                  mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // KIRI: Photos Card
+                    Flexible(
+                      flex: 3,
+                      fit: compact ? FlexFit.loose : FlexFit.tight,
+                      child: Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Photos',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color(0xFF2C2C2C),
+                                  ),
+                                ),
+                                if (_selectedImageBytes != null)
+                                  MouseRegion(
+                                    cursor: SystemMouseCursors.click,
+                                    child: GestureDetector(
+                                      onTap: _pickImage,
+                                      child: Text(
+                                        'Change',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: primaryOrange,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: _pickImage,
+                                child: Container(
+                                  height: 300,
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFDF2EB),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: const Color(0xFFFF944D),
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  child: _selectedImageBytes != null
+                                      ? ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                          child: Image.memory(
+                                            _selectedImageBytes!,
+                                            fit: BoxFit.cover,
+                                            width: double.infinity,
+                                            height: double.infinity,
+                                          ),
+                                        )
+                                      : Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            const Icon(
+                                              Icons.photo_library_outlined,
+                                              size: 32,
+                                              color: Color(0xFF333333),
+                                            ),
+                                            const SizedBox(height: 12),
+                                            Text(
+                                              'Tap to upload a cover photo',
+                                              style: GoogleFonts.inter(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.bold,
+                                                color: const Color(0xFF2C2C2C),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'JPG atau PNG · 1 foto sampul',
+                                              style: GoogleFonts.inter(
+                                                fontSize: 11,
+                                                color: const Color(0xFF888888),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    SizedBox(width: compact ? 0 : 24, height: compact ? 20 : 0),
+
+                    // KANAN: Book Information Form
+                    Flexible(
+                      flex: 7,
+                      fit: compact ? FlexFit.loose : FlexFit.tight,
+                      child: Container(
+                        padding: const EdgeInsets.all(32),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Photos',
+                              'Book information',
                               style: GoogleFonts.inter(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: const Color(0xFF2C2C2C),
                               ),
                             ),
-                            if (_selectedImageBytes != null)
-                              MouseRegion(
-                                cursor: SystemMouseCursors.click,
-                                child: GestureDetector(
-                                  onTap: _pickImage,
-                                  child: Text(
-                                    'Change',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: primaryOrange,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: _pickImage,
-                            child: Container(
-                              height: 300,
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFDF2EB),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: const Color(0xFFFF944D),
-                                  width: 1.5,
-                                ),
-                              ),
-                              child: _selectedImageBytes != null
-                                  ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(6),
-                                      child: Image.memory(
-                                        _selectedImageBytes!,
-                                        fit: BoxFit.cover,
-                                        width: double.infinity,
-                                        height: double.infinity,
-                                      ),
-                                    )
-                                  : Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        const Icon(
-                                          Icons.photo_library_outlined,
-                                          size: 32,
-                                          color: Color(0xFF333333),
-                                        ),
-                                        const SizedBox(height: 12),
-                                        Text(
-                                          'Drop cover photos here',
-                                          style: GoogleFonts.inter(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.bold,
-                                            color: const Color(0xFF2C2C2C),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          'JPG or PNG - up to 5 images',
-                                          style: GoogleFonts.inter(
-                                            fontSize: 11,
-                                            color: const Color(0xFF888888),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 24),
+                            const SizedBox(height: 24),
 
-                // KANAN: Book Information Form
-                Expanded(
-                  flex: 7,
-                  child: Container(
-                    padding: const EdgeInsets.all(32),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Book information',
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF2C2C2C),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildTextField(
+                            _fieldPair(context, [
+                              _buildTextField(
                                 'Book title',
                                 'Enter book title',
                                 _titleController,
                               ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildTextField(
+                              _buildTextField(
                                 'Category',
                                 'Literary fiction',
                                 _categoryController,
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildTextField(
+                            ]),
+                            const SizedBox(height: 16),
+                            _fieldPair(context, [
+                              _buildTextField(
                                 'Author',
                                 'Enter author',
                                 _authorController,
                               ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildTextField(
+                              _buildTextField(
                                 'Edition',
                                 'Enter edition',
                                 _editionController,
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildTextField(
+                            ]),
+                            const SizedBox(height: 16),
+                            _fieldPair(context, [
+                              _buildTextField(
                                 'ISBN',
                                 'Enter isbn',
                                 _isbnController,
                               ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildTextField(
+                              _buildTextField(
                                 'Language',
                                 'English',
                                 _languageController,
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildTextField(
+                            ]),
+                            const SizedBox(height: 16),
+                            _fieldPair(context, [
+                              _buildTextField(
                                 'Selling price',
                                 'Enter selling price',
                                 _priceController,
                                 isNumber: true,
                               ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildTextField(
+                              _buildTextField(
                                 'Description',
                                 'Enter description',
                                 _descriptionController,
                               ),
+                            ]),
+                            const SizedBox(height: 32),
+
+                            Text(
+                              'Condition checklist',
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF2C2C2C),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            _buildCheckbox(
+                              'No missing pages',
+                              noMissingPages,
+                              (val) => setState(() => noMissingPages = val!),
+                            ),
+                            _buildCheckbox(
+                              'No writing or highlighting',
+                              noWriting,
+                              (val) => setState(() => noWriting = val!),
+                            ),
+                            _buildCheckbox(
+                              'Cover firmly attached',
+                              coverFirmly,
+                              (val) => setState(() => coverFirmly = val!),
+                            ),
+                            _buildCheckbox(
+                              'No water damage',
+                              noWaterDamage,
+                              (val) => setState(() => noWaterDamage = val!),
+                            ),
+                            _buildCheckbox(
+                              'Smoke-free home',
+                              smokeFree,
+                              (val) => setState(() => smokeFree = val!),
+                            ),
+                            const SizedBox(height: 32),
+
+                            SizedBox(
+                              width: double.infinity,
+                              height: 48,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: primaryOrange,
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
+                                ),
+                                onPressed: _isSubmitting
+                                    ? null
+                                    : _publishListing,
+                                child: _isSubmitting
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : Text(
+                                        'Publish listing',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                              ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 32),
-
-                        Text(
-                          'Condition checklist',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF2C2C2C),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        _buildCheckbox(
-                          'No missing pages',
-                          noMissingPages,
-                          (val) => setState(() => noMissingPages = val!),
-                        ),
-                        _buildCheckbox(
-                          'No writing or highlighting',
-                          noWriting,
-                          (val) => setState(() => noWriting = val!),
-                        ),
-                        _buildCheckbox(
-                          'Cover firmly attached',
-                          coverFirmly,
-                          (val) => setState(() => coverFirmly = val!),
-                        ),
-                        _buildCheckbox(
-                          'No water damage',
-                          noWaterDamage,
-                          (val) => setState(() => noWaterDamage = val!),
-                        ),
-                        _buildCheckbox(
-                          'Smoke-free home',
-                          smokeFree,
-                          (val) => setState(() => smokeFree = val!),
-                        ),
-                        const SizedBox(height: 32),
-
-                        SizedBox(
-                          width: double.infinity,
-                          height: 48,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: primaryOrange,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(24),
-                              ),
-                            ),
-                            onPressed: _isSubmitting ? null : _publishListing,
-                            child: _isSubmitting
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : Text(
-                                    'Publish listing',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-              ],
+                  ],
+                );
+              },
             ),
           ],
         ),
@@ -541,6 +537,8 @@ class _SellABookPageState extends State<SellABookPage> {
         SizedBox(
           height: 44,
           child: TextField(
+            maxLines: label == 'Description' ? 2 : 1,
+            minLines: 1,
             controller: controller,
             keyboardType: isNumber ? TextInputType.number : TextInputType.text,
             style: GoogleFonts.inter(fontSize: 13),
@@ -573,6 +571,25 @@ class _SellABookPageState extends State<SellABookPage> {
       ],
     );
   }
+
+  Widget _fieldPair(BuildContext context, List<Widget> fields) => LayoutBuilder(
+    builder: (context, constraints) {
+      final compact = constraints.maxWidth < 540;
+      if (compact) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [fields[0], const SizedBox(height: 16), fields[1]],
+        );
+      }
+      return Row(
+        children: [
+          Expanded(child: fields[0]),
+          const SizedBox(width: 16),
+          Expanded(child: fields[1]),
+        ],
+      );
+    },
+  );
 
   Widget _buildCheckbox(
     String label,

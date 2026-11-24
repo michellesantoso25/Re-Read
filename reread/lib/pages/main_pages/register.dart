@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:reread/components/navbar.dart';
 import 'package:reread/main.dart';
 import 'package:reread/services/account_validation.dart';
+import 'package:reread/services/account_mode.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
@@ -57,6 +58,8 @@ class _RegisterPageState extends State<RegisterPage> {
         password: password,
         data: {'full_name': fullName, 'phone_number': phone},
       );
+      final redirectRoute =
+          ModalRoute.of(context)?.settings.arguments as String?;
 
       if (mounted && res.session == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -68,7 +71,11 @@ class _RegisterPageState extends State<RegisterPage> {
             duration: Duration(seconds: 6),
           ),
         );
-        Navigator.pushReplacementNamed(context, '/login');
+        Navigator.pushReplacementNamed(
+          context,
+          '/login',
+          arguments: redirectRoute,
+        );
         return;
       }
 
@@ -79,8 +86,10 @@ class _RegisterPageState extends State<RegisterPage> {
             backgroundColor: Colors.green,
           ),
         );
-        final redirectRoute =
-            ModalRoute.of(context)?.settings.arguments as String?;
+        if (redirectRoute == '/seller_dashboard') {
+          await AccountMode.set('seller');
+        }
+        if (!mounted) return;
         Navigator.pushReplacementNamed(context, redirectRoute ?? '/home');
       }
     } catch (error) {

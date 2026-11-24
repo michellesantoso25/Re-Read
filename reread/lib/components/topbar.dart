@@ -9,7 +9,6 @@ import 'package:reread/pages/buyer_pages/cart_page.dart';
 import 'package:reread/pages/buyer_pages/genre_page.dart';
 import 'package:reread/pages/buyer_pages/home_page.dart';
 import 'package:reread/pages/buyer_pages/new_arrivals_page.dart';
-import 'package:reread/pages/buyer_pages/profile_page.dart';
 import 'package:reread/pages/buyer_pages/sell_book_page.dart';
 
 class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
@@ -391,13 +390,8 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   void _openProfile(BuildContext context) {
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        pageBuilder: (_, _, _) => const ProfilePage(),
-        transitionDuration: Duration.zero,
-        reverseTransitionDuration: Duration.zero,
-      ),
-    );
+    if (ModalRoute.of(context)?.settings.name == '/profile_page') return;
+    Navigator.of(context).pushNamed('/profile_page');
   }
 
   void _showComingSoon(BuildContext context, String title) {

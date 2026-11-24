@@ -5,13 +5,16 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:reread/components/topbar.dart';
 import 'package:reread/main.dart';
+import 'package:reread/services/account_mode.dart';
 import 'package:reread/services/file_picker_registration_stub.dart'
     if (dart.library.io) 'package:reread/services/file_picker_registration_io.dart'
     if (dart.library.js_interop) 'package:reread/services/file_picker_registration_web.dart'
     as picker_registration;
+import 'package:reread/seller/component/top_bar.dart' as seller_topbar;
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({Key? key}) : super(key: key);
+  final bool? isSellerMode;
+  const ProfilePage({Key? key, this.isSellerMode}) : super(key: key);
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -33,6 +36,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   User? get _user => supabase.auth.currentUser;
   Map<String, dynamic> get _metadata => _user?.userMetadata ?? {};
+  bool get _isSellerMode => widget.isSellerMode ?? AccountMode.isSeller(_user);
 
   @override
   void initState() {
@@ -360,14 +364,13 @@ class _ProfilePageState extends State<ProfilePage> {
         ? email.split('@').first
         : _name.text.trim();
     final avatarUrl = _avatarUrl ?? _metadata['avatar_url']?.toString();
-    final accountType = (_metadata['account_type'] ?? _metadata['role'] ?? '')
-        .toString()
-        .toLowerCase();
-    final isSeller = accountType.contains('seller');
+    final isSeller = _isSellerMode;
     final width = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      appBar: const CustomTopBar(activeNav: null),
+      appBar: isSeller
+          ? const seller_topbar.CustomTopBar(activePage: 'Profile')
+          : const CustomTopBar(activeNav: null),
       body: SingleChildScrollView(
         padding: EdgeInsets.symmetric(
           horizontal: width < 700 ? 18 : 32,
@@ -384,7 +387,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       ? Alignment.center
                       : Alignment.centerLeft,
                   child: Text(
-                    isSeller ? 'Seller Profile' : 'Your Profile',
+                    'Your Profile',
                     textAlign: width < 700 ? TextAlign.center : TextAlign.left,
                     style: GoogleFonts.inter(
                       fontSize: 27,
@@ -399,9 +402,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       ? Alignment.center
                       : Alignment.centerLeft,
                   child: Text(
-                    isSeller
-                        ? 'Manage your details, address, catalog, and transactions.'
-                        : 'Manage your details, address, and transactions.',
+                    'Manage your details, address, and transactions.',
                     textAlign: width < 700 ? TextAlign.center : TextAlign.left,
                     style: GoogleFonts.inter(
                       color: Colors.black54,
@@ -698,6 +699,41 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<List<Map<String, dynamic>>> _loadBuyerOrders() async {
     final user = _user;
     if (user == null) return [];
+    if (_isSellerMode) {
+      final rows = await supabase
+          .from('order_items')
+          .select(
+            'order_id, title, unit_price, orders!inner(id, status, payment_status, gross_amount, created_at, order_shipments(courier, tracking_number, status))',
+          )
+          .eq('seller_id', user.id)
+          .order('created_at', ascending: false);
+      final grouped = <String, Map<String, dynamic>>{};
+      for (final raw in rows as List) {
+        final item = Map<String, dynamic>.from(raw as Map);
+        final order = Map<String, dynamic>.from(item['orders'] as Map);
+        final id = (order['id'] ?? item['order_id']).toString();
+        final row = grouped.putIfAbsent(
+          id,
+          () => {
+            'id': id,
+            'status': order['status'],
+            'payment_status': order['payment_status'],
+            'gross_amount': 0,
+            'created_at': order['created_at'],
+            'order_items': <Map<String, dynamic>>[],
+            'order_shipments': order['order_shipments'] ?? <dynamic>[],
+          },
+        );
+        (row['order_items'] as List<Map<String, dynamic>>).add({
+          'title': item['title'],
+          'unit_price': item['unit_price'],
+        });
+        row['gross_amount'] =
+            (row['gross_amount'] as int) +
+            ((item['unit_price'] as num?)?.round() ?? 0);
+      }
+      return grouped.values.toList();
+    }
     final rows = await supabase
         .from('orders')
         .select(
@@ -731,7 +767,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               const SizedBox(height: 12),
               Text(
-                'Buyer',
+                _isSellerMode ? 'Seller' : 'Buyer',
                 style: GoogleFonts.inter(
                   color: _orange,
                   fontWeight: FontWeight.w700,
@@ -804,45 +840,89 @@ class _ProfilePageState extends State<ProfilePage> {
                           'Rp ${amount.toString().replaceAllMapped(RegExp(r'\\B(?=(\\d{3})+(?!\\d))'), (_) => '.')}';
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 10),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '$firstTitle$extra',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.inter(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 3),
-                            Text(
-                              '$formattedAmount · ${status.toUpperCase()}',
-                              style: GoogleFonts.inter(
-                                fontSize: 11,
-                                color: Colors.black54,
-                              ),
-                            ),
-                            for (final rawShipment
-                                in (order['order_shipments'] as List? ?? []))
-                              Padding(
-                                padding: const EdgeInsets.only(top: 4),
-                                child: Text(
-                                  '${rawShipment['courier']} · Resi ${rawShipment['tracking_number']} · ${rawShipment['status']}',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 11,
-                                    color: _orange,
+                        child: Material(
+                          color: const Color(0xFFFFF8F4),
+                          borderRadius: BorderRadius.circular(10),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(10),
+                            onTap: _isSellerMode
+                                ? null
+                                : () => Navigator.pushNamed(
+                                    context,
+                                    '/buyer_order_detail',
+                                    arguments: order['id'].toString(),
                                   ),
-                                ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(10),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          '$firstTitle$extra',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: GoogleFonts.inter(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                      if (!_isSellerMode)
+                                        const Icon(
+                                          Icons.chevron_right_rounded,
+                                          size: 18,
+                                          color: _orange,
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    '$formattedAmount · ${status.toUpperCase()}',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 11,
+                                      color: Colors.black54,
+                                    ),
+                                  ),
+                                  for (final rawShipment
+                                      in (order['order_shipments'] as List? ??
+                                          []))
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 4),
+                                      child: Text(
+                                        '${rawShipment['courier']} · Resi ${rawShipment['tracking_number']} · ${rawShipment['status']}',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 11,
+                                          color: _orange,
+                                        ),
+                                      ),
+                                    ),
+                                ],
                               ),
-                          ],
+                            ),
+                          ),
                         ),
                       );
                     }).toList(),
                   );
                 },
               ),
+              if (!_isSellerMode) ...[
+                const SizedBox(height: 8),
+                Align(
+                  alignment: centered ? Alignment.center : Alignment.centerLeft,
+                  child: TextButton.icon(
+                    onPressed: () => Navigator.pushNamed(
+                      context,
+                      '/buyer_transaction_history',
+                    ),
+                    icon: const Icon(Icons.history_rounded),
+                    label: const Text('Lihat semua pesanan'),
+                  ),
+                ),
+              ],
             ],
           );
         },
@@ -884,8 +964,33 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         child: const Text('Switch account'),
       ),
+      if (_isSellerMode) ...[
+        const SizedBox(height: 7),
+        FilledButton(
+          onPressed: _changeRoleToBuyer,
+          style: FilledButton.styleFrom(
+            backgroundColor: _orange,
+            shape: const StadiumBorder(),
+            padding: const EdgeInsets.symmetric(vertical: 14),
+          ),
+          child: const Text('Change Role to Buyer'),
+        ),
+      ],
     ],
   );
+
+  Future<void> _changeRoleToBuyer() async {
+    try {
+      await AccountMode.set('buyer');
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(context, '/home', (_) => false);
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not change account role: $error')),
+      );
+    }
+  }
 
   Widget _addressField(String label, TextEditingController controller) {
     final centered = MediaQuery.sizeOf(context).width < 700;

@@ -213,7 +213,7 @@ class _FaqsPageState extends State<FaqsPage> {
   }
 
   void _trackOrders() {
-    Navigator.pushNamed(context, '/profile');
+    Navigator.pushNamed(context, '/profile_page');
   }
 
   // ----------------------------------------------------------------- build

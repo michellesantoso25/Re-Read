@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:reread/components/navbar.dart';
 import 'package:reread/main.dart';
 import 'package:reread/services/account_validation.dart';
+import 'package:reread/services/account_mode.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -50,6 +51,10 @@ class _LoginPageState extends State<LoginPage> {
       // Jika datang dari tombol "Start now" di Sell a Book, langsung ke Seller Dashboard
       final redirectRoute =
           ModalRoute.of(context)?.settings.arguments as String?;
+      if (redirectRoute == '/seller_dashboard') {
+        await AccountMode.set('seller');
+      }
+      if (!mounted) return;
       Navigator.pushReplacementNamed(context, redirectRoute ?? '/home');
     } on AuthException catch (error) {
       if (!mounted) return;

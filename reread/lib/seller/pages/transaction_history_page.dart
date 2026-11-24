@@ -13,6 +13,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
   static const Color bgColor = Color(0xFFF0E5DD);
   static const Color primaryOrange = Color(0xFFF95200);
   late Future<List<Map<String, dynamic>>> _orders;
+  String _filter = 'Semua';
 
   @override
   void initState() {
@@ -77,44 +78,91 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
     appBar: const CustomTopBar(activePage: 'Transaction History'),
     body: FutureBuilder<List<Map<String, dynamic>>>(
       future: _orders,
-      builder: (context, snapshot) => ListView(
-        padding: const EdgeInsets.all(24),
-        children: [
-          Text(
-            'Riwayat transaksi',
-            style: GoogleFonts.inter(
-              fontSize: 27,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFF2C2C2C),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Pesanan buku dari katalog Anda.',
-            style: GoogleFonts.inter(color: Colors.black54),
-          ),
-          const SizedBox(height: 20),
-          if (snapshot.connectionState == ConnectionState.waiting)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(40),
-                child: CircularProgressIndicator(color: primaryOrange),
+      builder: (context, snapshot) {
+        final allOrders = snapshot.data ?? const <Map<String, dynamic>>[];
+        final visibleOrders = allOrders.where((row) {
+          final order = Map<String, dynamic>.from(row['order'] as Map);
+          final shipment = row['shipment'] as Map?;
+          switch (_filter) {
+            case 'Perlu dikirim':
+              return order['payment_status'] == 'paid' && shipment == null;
+            case 'Dikirim':
+              return shipment != null && shipment['status'] != 'delivered';
+            case 'Selesai':
+              return shipment?['status'] == 'delivered';
+            default:
+              return true;
+          }
+        }).toList();
+        return ListView(
+          padding: const EdgeInsets.all(24),
+          children: [
+            Text(
+              'Riwayat transaksi',
+              style: GoogleFonts.inter(
+                fontSize: 27,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF2C2C2C),
               ),
-            )
-          else if (snapshot.hasError)
-            _empty(
-              'Riwayat belum dapat dimuat',
-              'Periksa migration dan kebijakan akses database.',
-            )
-          else if ((snapshot.data ?? []).isEmpty)
-            _empty(
-              'Belum ada transaksi',
-              'Pesanan buku Anda akan muncul di sini setelah buyer membuat pesanan.',
-            )
-          else
-            ...snapshot.data!.map(_transactionCard),
-        ],
-      ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Pesanan buku dari katalog Anda.',
+              style: GoogleFonts.inter(color: Colors.black54),
+            ),
+            const SizedBox(height: 20),
+            if (snapshot.connectionState == ConnectionState.waiting)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(40),
+                  child: CircularProgressIndicator(color: primaryOrange),
+                ),
+              )
+            else if (snapshot.hasError)
+              _empty(
+                'Riwayat belum dapat dimuat',
+                'Periksa migration dan kebijakan akses database.',
+              )
+            else if (allOrders.isEmpty)
+              _empty(
+                'Belum ada transaksi',
+                'Pesanan buku Anda akan muncul di sini setelah buyer membuat pesanan.',
+              )
+            else ...[
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    for (final filter in [
+                      'Semua',
+                      'Perlu dikirim',
+                      'Dikirim',
+                      'Selesai',
+                    ])
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ChoiceChip(
+                          label: Text(filter),
+                          selected: _filter == filter,
+                          selectedColor: const Color(0xFFFFDCCB),
+                          onSelected: (_) => setState(() => _filter = filter),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+              if (visibleOrders.isEmpty)
+                _empty(
+                  'Tidak ada transaksi pada status ini',
+                  'Transaksi akan muncul di sini saat status pesanan berubah.',
+                )
+              else
+                ...visibleOrders.map(_transactionCard),
+            ],
+          ],
+        );
+      },
     ),
   );
 
@@ -213,6 +261,15 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
             Text(
               'Status: ${shipment['status']}',
               style: GoogleFonts.inter(fontSize: 12, color: Colors.black54),
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: () =>
+                    Navigator.pushNamed(context, '/order_tracking_page'),
+                icon: const Icon(Icons.route_outlined),
+                label: const Text('Lihat tracking'),
+              ),
             ),
           ] else if (status == 'paid') ...[
             const SizedBox(height: 12),

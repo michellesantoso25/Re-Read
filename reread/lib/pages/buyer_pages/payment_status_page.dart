@@ -271,7 +271,7 @@ class _PaymentStatusPageState extends State<PaymentStatusPage> {
                     FilledButton.icon(
                       onPressed: () => Navigator.pushNamedAndRemoveUntil(
                         context,
-                        '/profile',
+                        '/profile_page',
                         (route) => false,
                       ),
                       icon: const Icon(Icons.receipt_long_outlined),

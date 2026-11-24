@@ -5,7 +5,6 @@ import 'package:reread/seller/pages/edit_profile_page.dart';
 import 'package:reread/seller/pages/messages_page.dart';
 import 'package:reread/seller/pages/notifications_page.dart';
 import 'package:reread/seller/pages/order_tracking_page.dart';
-import 'package:reread/seller/pages/profile_page.dart' as seller_profile;
 import 'package:reread/seller/pages/sell_a_book_page.dart';
 import 'package:reread/seller/pages/seller_catalog_page.dart';
 import 'package:reread/seller/pages/seller_dashboard.dart';
@@ -18,7 +17,9 @@ import 'package:reread/pages/main_pages/about_us_page.dart';
 import 'package:reread/pages/main_pages/faqs_page.dart';
 
 import 'package:reread/pages/buyer_pages/home_page.dart';
-import 'package:reread/pages/buyer_pages/profile_page.dart';
+import 'package:reread/pages/buyer_pages/order_detail_page.dart';
+import 'package:reread/pages/buyer_pages/transaction_history_page.dart';
+import 'package:reread/pages/profile_route_page.dart';
 import 'package:reread/pages/buyer_pages/payment_status_page.dart';
 import 'package:reread/pages/buyer_pages/cart_page.dart';
 import 'package:reread/pages/buyer_pages/checkout_page.dart';
@@ -79,9 +80,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFFECE6DF),
         textTheme: GoogleFonts.interTextTheme(Theme.of(context).textTheme),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFE05627),
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFE05627)),
         useMaterial3: true,
       ),
 
@@ -91,7 +90,6 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/home': (context) => const HomePage(),
-        '/profile': (context) => const ProfilePage(),
         '/cart': (context) => const CartPage(),
         '/checkout': (context) => const CheckoutPage(),
         '/categories': (context) => const CategoriesPage(),
@@ -129,13 +127,22 @@ class MyApp extends StatelessWidget {
             page = const NotificationsPage();
             break;
           case '/profile_page':
-            page = seller_profile.ProfilePage();
+            page = const ProfileRoutePage();
             break;
           case '/edit_profile_page':
             page = EditProfilePage();
             break;
           case '/order_tracking_page':
             page = const OrderTrackingPage();
+            break;
+          case '/buyer_order_detail':
+            final orderId = settings.arguments?.toString();
+            if (orderId != null && orderId.isNotEmpty) {
+              page = BuyerOrderDetailPage(orderId: orderId);
+            }
+            break;
+          case '/buyer_transaction_history':
+            page = const BuyerTransactionHistoryPage();
             break;
           case '/messages_page':
             page = const MessagesPage();

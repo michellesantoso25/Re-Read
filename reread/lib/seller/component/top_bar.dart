@@ -25,7 +25,9 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
   };
 
   @override
-  Size get preferredSize => const Size.fromHeight(64);
+  // Match the homepage's primary navigation row. The homepage's extra 40px
+  // belongs to its genre strip and is intentionally not part of seller nav.
+  Size get preferredSize => const Size.fromHeight(52);
 
   @override
   Widget build(BuildContext context) {
@@ -36,14 +38,14 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
             constraints.maxWidth <= 680 ||
             (constraints.maxWidth <= 900 && shortestSide < 600);
         final isTablet = !isPhone && constraints.maxWidth <= 1050;
-        final horizontalPadding = isPhone ? 16.0 : (isTablet ? 20.0 : 40.0);
+        final horizontalPadding = isPhone ? 12.0 : (isTablet ? 10.0 : 32.0);
 
         return Material(
           color: Colors.white,
           child: SafeArea(
             bottom: false,
             child: Container(
-              height: 64,
+              height: 52,
               padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
               decoration: const BoxDecoration(
                 border: Border(bottom: BorderSide(color: Color(0xFFEEEEEE))),
@@ -65,7 +67,7 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
                       children: [
                         Image.asset(
                           'lib/assets/logo2.png',
-                          height: isPhone ? 26 : 30,
+                          height: isTablet ? 28 : 32,
                           fit: BoxFit.contain,
                           errorBuilder: (_, __, ___) => const Icon(
                             Icons.menu_book_rounded,
@@ -238,7 +240,8 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
     final rows = await supabase
         .from('seller_wallet_ledger')
         .select('amount')
-        .eq('seller_id', user.id);
+        .eq('seller_id', user.id)
+        .not('released_at', 'is', null);
     return (rows as List).fold<int>(
       0,
       (total, row) => total + ((row['amount'] as num?)?.round() ?? 0),
@@ -264,13 +267,13 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
       },
       child: Padding(
         padding: EdgeInsets.symmetric(
-          horizontal: isTablet ? 10.0 : 16.0,
+          horizontal: isTablet ? 8.0 : 18.0,
           vertical: 8.0,
         ),
         child: Text(
           title,
           style: GoogleFonts.inter(
-            fontSize: isTablet ? 12.5 : 13.5,
+            fontSize: isTablet ? 11.5 : 12.0,
             fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
             color: isActive ? _primaryOrange : const Color(0xFF555555),
           ),
